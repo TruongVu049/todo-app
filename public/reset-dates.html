@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Todo Dates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            color: green;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Reset Todo Dates</h1>
+    <p>Click để xóa dữ liệu cũ và load lại todos với ngày tháng mới</p>
+    
+    <button onclick="resetDates()">Reset & Reload</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function resetDates() {
+            localStorage.removeItem('todo-store');
+            document.getElementById('result').innerHTML = 
+                '<p class="success">✅ Đã reset! Đang chuyển về trang chủ...</p>';
+            
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

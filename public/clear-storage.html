@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage - Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #ef4444;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #dc2626;
+        }
+        .success {
+            color: green;
+            margin-top: 20px;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Todo App Storage</h1>
+    <p>Click the button below to clear all stored data and fix any issues:</p>
+    
+    <button onclick="clearAllStorage()">Clear All Storage</button>
+    
+    <div id="result"></div>
+    
+    <h2>Current Storage:</h2>
+    <div id="storage"></div>
+    
+    <script>
+        function showStorage() {
+            const stored = localStorage.getItem('todo-store');
+            const storageDiv = document.getElementById('storage');
+            
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    storageDiv.innerHTML = '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                } catch (e) {
+                    storageDiv.innerHTML = '<pre>' + stored + '</pre>';
+                }
+            } else {
+                storageDiv.innerHTML = '<p>No data stored</p>';
+            }
+        }
+        
+        function clearAllStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            document.getElementById('result').innerHTML = 
+                '<p class="success">✅ All storage cleared successfully!<br><br>' +
+                '<strong>Next steps:</strong><br>' +
+                '1. Close this tab<br>' +
+                '2. Go back to your app<br>' +
+                '3. Refresh the page (F5)<br>' +
+                '4. Login again and test</p>';
+            
+            showStorage();
+        }
+        
+        // Show current storage on load
+        showStorage();
+    </script>
+</body>
+</html>
