@@ -168,7 +168,7 @@ export function TodoItem({ todo }: TodoItemProps) {
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            handleCardClick(e as unknown as React.MouseEvent)
+            handleCardClick()
           }
         }}
         className={cn(
