@@ -170,3 +170,33 @@ To enforce this, you can use ESLint:
 
 By following these practices, you can ensure that your codebase is well-organized, scalable, and maintainable. This will help you and your team to work more efficiently and effectively on the project.
 This approach can also make it easier to apply similar architecture to apps built with Next.js, Remix or React Native.
+
+---
+
+## ⚡ **Optimistic Updates (TanStack Query) — Xóa nhanh (Khuyên dùng)**
+
+**Mô tả:** Khi người dùng nhấn **"Xóa"**, thực hiện optimistic update để xóa ngay trên giao diện trước khi API trả về. Nếu API thành công → giữ nguyên. Nếu API lỗi → hoàn tác (rollback) về dữ liệu cũ.
+
+**Triển khai (ngắn):** Trong `src/features/todos/hooks.ts` hook `useDeleteTodo` đã áp dụng pattern này:
+
+```ts
+onMutate: async (id) => {
+  await qc.cancelQueries({ queryKey: TODOS_QUERY_KEY })
+  const previous = qc.getQueryData<Todo[]>(TODOS_QUERY_KEY)
+  qc.setQueryData<Todo[] | undefined>(TODOS_QUERY_KEY, (old) =>
+    old ? old.filter((t) => t.id !== id) : old,
+  )
+  return { previous }
+},
+onError: (_err, _variables, context: any) => {
+  qc.setQueryData(TODOS_QUERY_KEY, context.previous)
+},
+onSettled: () => qc.invalidateQueries({ queryKey: TODOS_QUERY_KEY }),
+```
+
+**Ghi chú & kiểm thử:**
+
+- Hiện có mock API (`VITE_APP_ENABLE_API_MOCKING=true`) để phát triển; để kiểm tra rollback, sử dụng biến môi trường `VITE_APP_MOCK_DELETE_FAIL_RATE` (số từ 0 tới 1) để mô phỏng lỗi khi xóa. Ví dụ `VITE_APP_MOCK_DELETE_FAIL_RATE=1` sẽ luôn ném lỗi, `0.5` có xác suất 50%.
+- **Tip:** Hệ thống `toast` đã được thêm để hiển thị lỗi khi `onError` xảy ra (thông báo sẽ hiện ở góc phải dưới).
+
+---

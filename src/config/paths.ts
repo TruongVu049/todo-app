@@ -1,6 +1,11 @@
 export const paths = {
   home: {
     path: '/',
-    getHref: () => '/',
   },
-} as const
+  login: {
+    path: '/login',
+  },
+  todos: {
+    path: '/todos',
+  },
+}

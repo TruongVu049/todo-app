@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 
 import { MainErrorFallback } from '@/components/errors/main'
 import { Spinner } from '@/components/ui/spinner'
+import { ToastProvider } from '@/components/ui/toast'
 
 type AppProviderProps = {
   children: React.ReactNode
@@ -19,7 +20,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
-        <HelmetProvider>{children}</HelmetProvider>
+        <ToastProvider>
+          <HelmetProvider>{children}</HelmetProvider>
+        </ToastProvider>
       </ErrorBoundary>
     </React.Suspense>
   )

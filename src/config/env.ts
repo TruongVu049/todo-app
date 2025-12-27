@@ -2,7 +2,8 @@ import * as z from 'zod'
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    API_URL: z.string(),
+    // Allow API_URL to be omitted locally and default to dummyjson for the exercise
+    API_URL: z.string().optional().default('https://dummyjson.com'),
     ENABLE_API_MOCKING: z
       .string()
       .refine((s) => s === 'true' || s === 'false')
@@ -10,6 +11,13 @@ const createEnv = () => {
       .optional(),
     APP_URL: z.string().optional().default('http://localhost:3000'),
     APP_MOCK_API_PORT: z.string().optional().default('8080'),
+    MOCK_DELETE_FAIL_RATE: z
+      .string()
+      .optional()
+      .transform((s) => Number(s ?? 0))
+      .refine((n) => !Number.isNaN(n) && n >= 0 && n <= 1, {
+        message: 'must be a number between 0 and 1',
+      }),
   })
 
   const envVars = Object.entries(import.meta.env).reduce<

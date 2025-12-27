@@ -1,29 +1,36 @@
 import { useMemo } from 'react'
-import { createBrowserRouter } from 'react-router'
-import { RouterProvider } from 'react-router/dom'
-
-import { paths } from '@/config/paths'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
 export const createAppRouter = () =>
   createBrowserRouter([
     {
-      path: paths.home.path,
+      path: '/',
+      element: <Navigate to="/todos" replace />,
+    },
+
+    {
+      path: '/login',
       lazy: async () => {
-        const { default: Home } = await import('./routes/home/page')
-        return { element: <Home /> }
+        const { default: Login } = await import('./routes/login/page')
+        return { element: <Login /> }
       },
     },
+
+    {
+      path: '/todos',
+      lazy: async () => {
+        const { default: Todos } = await import('./routes/todos/page')
+        return { element: <Todos /> }
+      },
+    },
+
     {
       path: '*',
-      lazy: async () => {
-        const { default: NotFound } = await import('./routes/not-found')
-        return { element: <NotFound /> }
-      },
+      element: <Navigate to="/todos" replace />,
     },
   ])
 
 export const AppRouter = () => {
   const router = useMemo(() => createAppRouter(), [])
-
   return <RouterProvider router={router} />
 }
