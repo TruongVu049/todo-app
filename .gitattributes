@@ -1,0 +1,6 @@
+# Enforce LF endings
+* text=auto eol=lf
+
+# Node artifacts
+node_modules/ export-ignore
+dist/ export-ignore
