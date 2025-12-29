@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
+import { ProtectedRoute } from '@/components/auth'
 import { paths } from '@/config/paths'
 
 export const createAppRouter = () =>
@@ -14,11 +15,23 @@ export const createAppRouter = () =>
       },
     },
     {
-      path: paths.todos.path,
+      path: paths.login.path,
       lazy: async () => {
-        const { default: TodosPage } = await import('./routes/todos/page')
-        return { element: <TodosPage /> }
+        const { default: LoginPage } = await import('./routes/login/page')
+        return { element: <LoginPage /> }
       },
+    },
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          path: paths.todos.path,
+          lazy: async () => {
+            const { default: TodosPage } = await import('./routes/todos/page')
+            return { element: <TodosPage /> }
+          },
+        },
+      ],
     },
     {
       path: '*',

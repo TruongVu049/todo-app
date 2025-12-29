@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { AlertTriangle } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
+
 import {
   Dialog,
   DialogContent,
@@ -41,11 +42,6 @@ export const SimpleConfirmationDialog = ({
       <DialogContent>
         <DialogHeader>
           <div className="flex items-start gap-3">
-            {isDangerous && (
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-            )}
             <div className="flex-1">
               <DialogTitle>{title}</DialogTitle>
               {description && (
@@ -63,7 +59,9 @@ export const SimpleConfirmationDialog = ({
           <Button
             type="button"
             onClick={handleConfirm}
-            className={isDangerous ? 'bg-red-600 hover:bg-red-700' : ''}
+            className={
+              isDangerous ? 'bg-red-600 hover:bg-red-700 text-white' : ''
+            }
           >
             {confirmText}
           </Button>

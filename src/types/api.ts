@@ -29,3 +29,24 @@ export type UpdateTodoRequest = {
   todo?: string
   completed?: boolean
 }
+
+// Auth types
+export type LoginRequest = {
+  username: string
+  password: string
+}
+
+export type User = {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  gender: string
+  image: string
+}
+
+export type LoginResponse = {
+  token: string
+  refreshToken: string
+} & User

@@ -1,7 +1,8 @@
 import { Trash2, Edit } from 'lucide-react'
-import { Todo } from '@/types/api'
+
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Todo } from '@/types/api'
 import { cn } from '@/utils/cn'
 
 type TodoItemProps = {

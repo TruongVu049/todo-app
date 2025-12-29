@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+
 import { cn } from '@/utils/cn'
 
 type CheckboxProps = {

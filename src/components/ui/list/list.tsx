@@ -1,6 +1,7 @@
-import { ReactNode } from 'react'
-import { Spinner } from '@/components/ui/spinner'
 import { CheckCircle2 } from 'lucide-react'
+import { ReactNode } from 'react'
+
+import { Spinner } from '@/components/ui/spinner'
 
 type ListProps = {
   children: ReactNode

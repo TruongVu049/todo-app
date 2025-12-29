@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Todo } from '@/types/api'
+
 import { getTodos, createTodo, updateTodo, deleteTodo } from '@/api/todos'
+import { Todo } from '@/types/api'
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([])

@@ -28,6 +28,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
       const data = await response.json()
       error.message = data.message || error.message
     } catch {
+      // Ignore JSON parse errors
     }
 
     throw new ApiClientError(error.status, error.message)

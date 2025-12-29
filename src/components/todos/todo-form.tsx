@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Todo } from '@/types/api'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { colors } from '@/config/colors'
+import { Todo } from '@/types/api'
 
 type TodoFormProps = {
   todo?: Todo | null
@@ -40,13 +41,12 @@ export const TodoForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 p-1">
       <Input
-        label="Task Description"
+        label="Mô tả công việc"
         value={todoText}
         onChange={(e) => setTodoText(e.target.value)}
         placeholder="What do you need to do?"
         required
         disabled={isSubmitting}
-        autoFocus
       />
 
       {todo && (
@@ -63,7 +63,7 @@ export const TodoForm = ({
             htmlFor="completed"
             className="text-sm font-medium text-gray-700 cursor-pointer"
           >
-            Mark as completed
+            Đánh dấu là đã hoàn thành
           </label>
         </div>
       )}
@@ -76,7 +76,7 @@ export const TodoForm = ({
           disabled={isSubmitting}
           className="px-6"
         >
-          Cancel
+          Hủy
         </Button>
         <Button
           type="submit"
@@ -92,7 +92,11 @@ export const TodoForm = ({
             (e.currentTarget.style.backgroundColor = colors.brand.primary)
           }
         >
-          {isSubmitting ? 'Saving...' : todo ? 'Update Task' : 'Create Task'}
+          {isSubmitting
+            ? 'Đang lưu...'
+            : todo
+              ? 'Cập nhật công việc'
+              : 'Tạo công việc mới'}
         </Button>
       </div>
     </form>

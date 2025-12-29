@@ -1,6 +1,7 @@
-import { Todo } from '@/types/api'
-import { TodoItem } from './todo-item'
 import { List } from '@/components/ui/list'
+import { Todo } from '@/types/api'
+
+import { TodoItem } from './todo-item'
 
 type TodoListProps = {
   todos: Todo[]
@@ -21,9 +22,9 @@ export const TodoList = ({
     <List
       isLoading={isLoading}
       isEmpty={todos.length === 0}
-      emptyTitle="All caught up!"
-      emptyDescription="Create your first todo to get started"
-      loadingText="Loading your tasks..."
+      emptyTitle="Không có công việc nào"
+      emptyDescription="Tạo công việc mới để bắt đầu."
+      loadingText="Đang tải công việc..."
     >
       {todos.map((todo, index) => (
         <div key={todo.id} style={{ animationDelay: `${index * 50}ms` }}>
