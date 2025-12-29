@@ -19,8 +19,26 @@ export interface LoginResponse {
   lastName: string
   gender: string
   image: string
-  token: string
+  accessToken: string
   refreshToken: string
+}
+
+export interface RegisterRequest {
+  username: string
+  password: string
+  email: string
+  firstName: string
+  lastName: string
+}
+
+export interface RegisterResponse {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  gender: string
+  image: string
 }
 
 export interface AuthUser {

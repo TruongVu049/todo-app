@@ -1,172 +1,173 @@
-# React Vite Application
+# MEU TODO - Ứng Dụng Quản Lý Công Việc
 
-## Get Started
+## 📋 Mô Tả
 
-Prerequisites:
+MEU TODO là ứng dụng quản lý công việc được xây dựng với React, TypeScript và Vite. Ứng dụng tích hợp với DummyJSON API để thực hiện các thao tác CRUD và xác thực người dùng.
 
-- Node 20+
-- Yarn 1.22+
+## 🚀 Tính Năng
 
-To set up the app execute the following commands.
+### Authentication (Xác thực)
+
+- ✅ Đăng nhập với API thật (DummyJSON)
+- ✅ Đăng xuất và xóa token
+- ✅ Protected routes (bảo vệ trang)
+- ✅ Lưu trạng thái đăng nhập (localStorage)
+
+### Todo CRUD
+
+- ✅ Xem danh sách công việc
+- ✅ Thêm công việc mới
+- ✅ Chỉnh sửa công việc
+- ✅ Đánh dấu hoàn thành/chưa hoàn thành
+- ✅ Xóa công việc (có xác nhận)
+
+### UI/UX
+
+- ✅ Loading state khi đang tải
+- ✅ Error state khi có lỗi
+- ✅ Empty state khi không có dữ liệu
+- ✅ Responsive design
+- ✅ Lọc và sắp xếp công việc
+
+## 🛠️ Công Nghệ Sử Dụng
+
+- **React 18** - UI Framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **TailwindCSS** - Styling
+- **Zustand** - State management
+- **React Query** - Server state & mutations
+- **React Router 7** - Routing
+- **React Hook Form + Zod** - Form validation
+- **Radix UI** - UI components
+
+## 📦 Cài Đặt
+
+### Yêu cầu
+
+- Node.js 20+
+- npm hoặc yarn
+
+### Các bước cài đặt
 
 ```bash
+# Clone repository
+git clone https://github.com/TruongVu049/todo-app.git
+
+# Di chuyển vào thư mục
+cd todo-app
+
+# Cài đặt dependencies
+npm install
+# hoặc
 yarn install
+
+# Chạy development server
+npm run dev
+# hoặc
+yarn dev
 ```
 
-##### `yarn dev`
+Mở [http://localhost:3000](http://localhost:3000) để xem ứng dụng.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🔐 Tài Khoản Test
 
-##### `yarn build`
-
-Builds the app for production to the `dist` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-See the section about [deployment](https://vitejs.dev/guide/static-deploy) for more information.
-
-# 🗄️ Project Structure
-
-Most of the code lives in the `src` folder and looks something like this:
-
-```sh
-src
-|
-+-- app               # application layer containing:
-|   |                 # this folder might differ based on the meta framework used
-|   +-- routes        # application routes / can also be pages
-|   +-- app.tsx       # main application component
-|   +-- provider.tsx  # application provider that wraps the entire application with different global providers - this might also differ based on meta framework used
-|   +-- router.tsx    # application router configuration
-+-- assets            # assets folder can contain all the static files such as images, fonts, etc.
-|
-+-- components        # shared components used across the entire application
-|
-+-- config            # global configurations, exported env variables etc.
-|
-+-- features          # feature based modules
-|
-+-- hooks             # shared hooks used across the entire application
-|
-+-- lib               # reusable libraries preconfigured for the application
-|
-+-- stores            # global state stores
-|
-+-- testing           # test utilities and mocks
-|
-+-- types             # shared types used across the application
-|
-+-- utils             # shared utility functions
+```
+Username: emilys
+Password: emilyspass
 ```
 
-For easy scalability and maintenance, organize most of the code within the features folder. Each feature folder should contain code specific to that feature, keeping things neatly separated. This approach helps prevent mixing feature-related code with shared components, making it simpler to manage and maintain the codebase compared to having many files in a flat folder structure. By adopting this method, you can enhance collaboration, readability, and scalability in the application's architecture.
+Hoặc các tài khoản khác từ [DummyJSON Users](https://dummyjson.com/users)
 
-A feature could have the following structure:
+## 📁 Cấu Trúc Thư Mục
 
-```sh
-src/features/awesome-feature
-|
-+-- api         # exported API request declarations and api hooks related to a specific feature
-|
-+-- assets      # assets folder can contain all the static files for a specific feature
-|
-+-- components  # components scoped to a specific feature
-|
-+-- hooks       # hooks scoped to a specific feature
-|
-+-- stores      # state stores for a specific feature
-|
-+-- types       # typescript types used within the feature
-|
-+-- utils       # utility functions for a specific feature
+```
+src/
+├── api/                    # API integration
+│   ├── client.ts          # Base API client
+│   ├── auth.ts            # Auth endpoints
+│   └── todos.ts           # Todo endpoints
+├── app/                    # Application layer
+│   ├── routes/            # Pages
+│   │   ├── home/          # Todo list page
+│   │   └── login/         # Login page
+│   ├── protected-route.tsx # Route guard
+│   └── router.tsx         # Router config
+├── components/            # Reusable components
+│   ├── layouts/           # Layout components (Outlet)
+│   ├── todos/             # Todo components
+│   └── ui/                # UI primitives
+├── hooks/                 # Custom hooks
+│   ├── use-auth.ts        # Auth hooks (useMutation)
+│   └── use-disclosure.ts  # Modal state hook
+├── stores/                # Zustand stores
+│   ├── auth.ts            # Auth state
+│   └── todos.ts           # Todo state
+└── types/                 # TypeScript types
+    └── api.ts             # API types
 ```
 
-NOTE: You don't need all of these folders for every feature. Only include the ones that are necessary for the feature.
+## 🔧 Scripts
 
-In some cases it might be more practical to keep all API calls outside of the features folders in a dedicated `api` folder where all API calls are defined. This can be useful if you have a lot of shared API calls between features.
+```bash
+# Development
+npm run dev
 
-In the past, it was recommended to use barrel files to export all the files from a feature. However, it can cause issues for Vite to do tree shaking and can lead to performance issues. Therefore, it is recommended to import the files directly.
+# Build production
+npm run build
 
-It might not be a good idea to import across the features. Instead, compose different features at the application level. This way, you can ensure that each feature is independent which makes the codebase less convoluted.
+# Preview build
+npm run preview
 
-To forbid cross-feature imports, you can use ESLint:
+# Type check
+npm run check-types
 
-```js
-'import/no-restricted-paths': [
-    'error',
-    {
-        zones: [
-            // disables cross-feature imports:
-            // eg. src/features/discussions should not import from src/features/comments, etc.
-            {
-                target: './src/features/auth',
-                from: './src/features',
-                except: ['./auth'],
-            },
-            {
-                target: './src/features/comments',
-                from: './src/features',
-                except: ['./comments'],
-            },
-            {
-                target: './src/features/discussions',
-                from: './src/features',
-                except: ['./discussions'],
-            },
-            {
-                target: './src/features/teams',
-                from: './src/features',
-                except: ['./teams'],
-            },
-            {
-                target: './src/features/users',
-                from: './src/features',
-                except: ['./users'],
-            },
-
-            // More restrictions...
-        ],
-    },
-],
+# Lint
+npm run lint
 ```
 
-You might also want to enforce unidirectional codebase architecture. This means that the code should flow in one direction, from shared parts of the code to the application (shared -> features -> app). This is a good practice to follow as it makes the codebase more predictable and easier to understand.
+## 📝 API Endpoints
 
-![Unidirectional Codebase](./assets/unidirectional-codebase.png)
+### Authentication
 
-As you can see, the shared parts can be used by any part of the codebase, but the features can only import from shared parts and the app can import from features and shared parts.
-
-To enforce this, you can use ESLint:
-
-```js
-'import/no-restricted-paths': [
-    'error',
-    {
-    zones: [
-        // Previous restrictions...
-
-        // enforce unidirectional codebase:
-        // e.g. src/app can import from src/features but not the other way around
-        {
-            target: './src/features',
-            from: './src/app',
-        },
-
-        // e.g src/features and src/app can import from these shared modules but not the other way around
-        {
-            target: [
-                './src/components',
-                './src/hooks',
-                './src/lib',
-                './src/types',
-                './src/utils',
-            ],
-            from: ['./src/features', './src/app'],
-        },
-    ],
-    },
-],
+```
+POST /auth/login
+Body: { username, password }
+Response: { id, username, email, token, ... }
 ```
 
-By following these practices, you can ensure that your codebase is well-organized, scalable, and maintainable. This will help you and your team to work more efficiently and effectively on the project.
-This approach can also make it easier to apply similar architecture to apps built with Next.js, Remix or React Native.
+### Todos
+
+```
+GET    /todos              # Lấy danh sách
+POST   /todos/add          # Tạo mới
+PUT    /todos/{id}         # Cập nhật
+DELETE /todos/{id}         # Xóa
+```
+
+## ✅ Checklist Hoàn Thành
+
+### Yêu cầu kỹ thuật
+
+- [x] Không gọi fetch trong useEffect
+- [x] Dùng useQuery và useMutation
+- [x] Không dùng `any` trong TypeScript
+- [x] Layout bằng Outlet
+- [x] TailwindCSS cho giao diện
+- [x] Cấu trúc: api/hooks/components/pages
+
+### Chức năng
+
+- [x] Todo CRUD hoạt động đúng
+- [x] Login và logout hoạt động đúng
+- [x] Protected routes hoạt động đúng
+- [x] Code sạch, dễ đọc
+- [x] Không có lỗi TypeScript
+
+## 👤 Tác Giả
+
+**Nguyễn Thế Minh Thiện**
+
+## 📄 License
+
+MIT License
