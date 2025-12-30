@@ -9,8 +9,8 @@ export const createAppRouter = () =>
     {
       path: paths.home.path,
       lazy: async () => {
-        const { default: Home } = await import('./routes/home/page')
-        return { element: <Home /> }
+        const { default: TodosPage } = await import('@/pages/TodosPage')
+        return { element: <TodosPage /> }
       },
     },
     {
