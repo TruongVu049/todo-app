@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -7,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { paths } from '@/config/paths'
+import { useAuthStore } from '@/features/auth/store'
 
 interface ProfileModalProps {
   open: boolean
@@ -14,11 +17,19 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
-  const [name, setName] = React.useState('Người dùng')
-  const [email, setEmail] = React.useState('user@example.com')
+  const navigate = useNavigate()
+  const { user, logout } = useAuthStore()
+  const [name, setName] = React.useState(user?.firstName || 'Người dùng')
+  const [email, setEmail] = React.useState(user?.email || 'user@example.com')
 
   const handleSave = () => {
     onOpenChange(false)
+  }
+
+  const handleLogout = () => {
+    logout()
+    onOpenChange(false)
+    navigate(paths.login.getHref())
   }
 
   return (
@@ -105,6 +116,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
           <Button
             variant="outline"
             className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={handleLogout}
           >
             Đăng xuất
           </Button>

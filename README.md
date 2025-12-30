@@ -25,6 +25,24 @@ It correctly bundles React in production mode and optimizes the build for the be
 
 See the section about [deployment](https://vitejs.dev/guide/static-deploy) for more information.
 
+## 🔐 Authentication
+
+The application includes a complete authentication system with:
+
+- **Login Page**: 2-column layout with branding and login form
+- **Register Page**: Card-centered layout with registration form
+- **Protected Routes**: Todo page requires authentication
+- **Logout**: Available in the user profile modal
+
+### Test Credentials
+
+```
+Username: emilys
+Password: emilyspass
+```
+
+The authentication uses the [DummyJSON Auth API](https://dummyjson.com/docs/auth).
+
 # 🗄️ Project Structure
 
 Most of the code lives in the `src` folder and looks something like this:

@@ -75,6 +75,7 @@ module.exports = {
               },
 
               // e.g src/features and src/app can import from these shared modules but not the other way around
+              // Exception: auth is allowed as it's a cross-cutting concern
               {
                 target: [
                   './src/components',
@@ -83,7 +84,14 @@ module.exports = {
                   './src/types',
                   './src/utils',
                 ],
-                from: ['./src/features', './src/app'],
+                from: [
+                  './src/features/comments',
+                  './src/features/discussions',
+                  './src/features/teams',
+                  './src/features/users',
+                  './src/features/todos',
+                  './src/app',
+                ],
               },
             ],
           },

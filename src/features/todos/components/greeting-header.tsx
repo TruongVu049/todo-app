@@ -3,6 +3,8 @@ import { useMemo } from 'react'
 import type { ViewMode } from '@/types/common'
 import { cn } from '@/utils/cn'
 
+import { useAuthStore } from '../../auth/store'
+
 interface GreetingHeaderProps {
   viewMode?: ViewMode
   onViewModeChange?: (mode: ViewMode) => void
@@ -12,6 +14,7 @@ export function GreetingHeader({
   viewMode = 'list',
   onViewModeChange,
 }: GreetingHeaderProps) {
+  const user = useAuthStore((state) => state.user)
   const { greeting, dateString } = useMemo(() => {
     const now = new Date()
     const hour = now.getHours()
@@ -51,7 +54,7 @@ export function GreetingHeader({
     <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
       <div>
         <h1 className="text-[28px] font-bold text-slate-900 dark:text-white tracking-tight">
-          {greeting}, Bạn
+          {greeting}, {user?.firstName || 'Bạn'}
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-[15px]">
           {dateString}
