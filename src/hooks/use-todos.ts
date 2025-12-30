@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 
 import { getTodos, createTodo, updateTodo, deleteTodo } from '@/api/todos'
-import { Todo } from '@/types/api'
+import { APP_CONFIG, MESSAGES } from '@/constants'
+import type { Todo } from '@/types/api'
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -9,25 +10,25 @@ export const useTodos = () => {
   const [error, setError] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
-
-  useEffect(() => {
-    loadTodos()
-  }, [])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const loadTodos = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await getTodos(30)
-      setTodos(response.todos)
+      const response = await getTodos(APP_CONFIG.DEFAULT_TODOS_LIMIT)
+      setTodos([...response.todos])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load todos')
+      setError(MESSAGES.errors.loadTodosFailed)
     } finally {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadTodos()
+  }, [])
 
   const handleCreateTodo = async (data: {
     todo: string
@@ -37,12 +38,12 @@ export const useTodos = () => {
       setIsSubmitting(true)
       const newTodo = await createTodo({
         ...data,
-        userId: 1,
+        userId: APP_CONFIG.DEFAULT_USER_ID,
       })
-      setTodos((prev) => [newTodo, ...prev])
+      setTodos([newTodo, ...todos])
       setIsFormOpen(false)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create todo')
+      setError(MESSAGES.errors.createTodoFailed)
     } finally {
       setIsSubmitting(false)
     }
@@ -54,42 +55,55 @@ export const useTodos = () => {
   }) => {
     if (!editingTodo) return
 
-    setTodos((prev) =>
-      prev.map((t) => (t.id === editingTodo.id ? { ...t, ...data } : t)),
-    )
-    setIsFormOpen(false)
-    setEditingTodo(null)
-
     try {
       setIsSubmitting(true)
-      await updateTodo(editingTodo.id, data)
+
+      if (editingTodo.id < 255) {
+        const updated = await updateTodo(editingTodo.id, data)
+        setTodos(todos.map((t) => (t.id === updated.id ? updated : t)))
+      } else {
+        setTodos(
+          todos.map((t) => (t.id === editingTodo.id ? { ...t, ...data } : t)),
+        )
+      }
+
+      setIsFormOpen(false)
+      setEditingTodo(null)
     } catch (err) {
-      console.warn('Update on server failed (demo API):', err)
+      setError(MESSAGES.errors.updateTodoFailed)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const handleToggleTodo = async (id: number, completed: boolean) => {
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed } : t)))
+    const previousTodos = [...todos]
+    setTodos(todos.map((t) => (t.id === id ? { ...t, completed } : t)))
 
     try {
-      await updateTodo(id, { completed })
+      if (id < 255) {
+        await updateTodo(id, { completed })
+      }
     } catch (err) {
-      console.warn('Toggle on server failed (demo API):', err)
+      setTodos(previousTodos)
+      setError(MESSAGES.errors.updateTodoFailed)
     }
   }
 
   const handleDeleteTodo = async () => {
     if (!deletingId) return
 
-    setTodos((prev) => prev.filter((t) => t.id !== deletingId))
-    setDeletingId(null)
+    const previousTodos = [...todos]
+    setTodos(todos.filter((t) => t.id !== deletingId))
 
     try {
-      await deleteTodo(deletingId)
+      if (deletingId < 255) {
+        await deleteTodo(deletingId)
+      }
+      setDeletingId(null)
     } catch (err) {
-      console.warn('Delete on server failed (demo API):', err)
+      setTodos(previousTodos)
+      setError(MESSAGES.errors.deleteTodoFailed)
     }
   }
 
@@ -104,6 +118,7 @@ export const useTodos = () => {
   }
 
   const openCreateForm = () => {
+    setEditingTodo(null)
     setIsFormOpen(true)
   }
 
@@ -112,7 +127,7 @@ export const useTodos = () => {
   }
 
   return {
-    // State
+    //state
     todos,
     isLoading,
     error,
@@ -120,8 +135,8 @@ export const useTodos = () => {
     editingTodo,
     isSubmitting,
     deletingId,
-    // Actions
     loadTodos,
+    //actions
     handleCreateTodo,
     handleUpdateTodo,
     handleToggleTodo,

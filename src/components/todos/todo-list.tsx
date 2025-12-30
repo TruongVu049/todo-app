@@ -4,7 +4,7 @@ import { Todo } from '@/types/api'
 import { TodoItem } from './todo-item'
 
 type TodoListProps = {
-  todos: Todo[]
+  todos: readonly Todo[]
   isLoading: boolean
   onToggle: (id: number, completed: boolean) => void
   onEdit: (todo: Todo) => void

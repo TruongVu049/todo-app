@@ -1,8 +1,8 @@
+import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { colors } from '@/config/colors'
 import { Todo } from '@/types/api'
 
 type TodoFormProps = {
@@ -39,7 +39,13 @@ export const TodoForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 p-1">
+    <motion.form
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      onSubmit={handleSubmit}
+      className="space-y-6 p-1"
+    >
       <Input
         label="Mô tả công việc"
         value={todoText}
@@ -81,16 +87,7 @@ export const TodoForm = ({
         <Button
           type="submit"
           disabled={isSubmitting || !todoText.trim()}
-          className="text-white px-6 shadow-lg hover:shadow-xl transition-all duration-200"
-          style={{ backgroundColor: colors.brand.primary }}
-          onMouseEnter={(e) =>
-            !e.currentTarget.disabled &&
-            (e.currentTarget.style.backgroundColor = colors.brand.primaryHover)
-          }
-          onMouseLeave={(e) =>
-            !e.currentTarget.disabled &&
-            (e.currentTarget.style.backgroundColor = colors.brand.primary)
-          }
+          className="text-white px-6 shadow-lg hover:shadow-xl transition-all duration-200 bg-brand-primary hover:bg-brand-primary-hover"
         >
           {isSubmitting
             ? 'Đang lưu...'
@@ -99,6 +96,6 @@ export const TodoForm = ({
               : 'Tạo công việc mới'}
         </Button>
       </div>
-    </form>
+    </motion.form>
   )
 }

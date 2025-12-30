@@ -1,22 +1,22 @@
 export type Meta = {
-  page: number
-  totalPages: number
-  total: number
-  limit: number
+  readonly page: number
+  readonly totalPages: number
+  readonly total: number
+  readonly limit: number
 }
 
 export type Todo = {
-  id: number
-  todo: string
-  completed: boolean
-  userId: number
+  readonly id: number
+  readonly todo: string
+  readonly completed: boolean
+  readonly userId: number
 }
 
 export type TodosResponse = {
-  todos: Todo[]
-  total: number
-  skip: number
-  limit: number
+  readonly todos: readonly Todo[]
+  readonly total: number
+  readonly skip: number
+  readonly limit: number
 }
 
 export type CreateTodoRequest = {
@@ -37,16 +37,16 @@ export type LoginRequest = {
 }
 
 export type User = {
-  id: number
-  username: string
-  email: string
-  firstName: string
-  lastName: string
-  gender: string
-  image: string
+  readonly id: number
+  readonly username: string
+  readonly email: string
+  readonly firstName: string
+  readonly lastName: string
+  readonly gender: string
+  readonly image: string
 }
 
 export type LoginResponse = {
-  token: string
-  refreshToken: string
+  readonly token: string
+  readonly refreshToken: string
 } & User

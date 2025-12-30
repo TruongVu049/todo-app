@@ -13,17 +13,15 @@ export const useLogin = () => {
     mutationFn: (credentials: LoginRequest) => authApi.login(credentials),
     onSuccess: (data) => {
       setToken(data.token)
-      setUser(
-        JSON.stringify({
-          id: data.id,
-          username: data.username,
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          gender: data.gender,
-          image: data.image,
-        }),
-      )
+      setUser({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        gender: data.gender,
+        image: data.image,
+      })
       navigate(paths.todos.getHref(), { replace: true })
     },
   })

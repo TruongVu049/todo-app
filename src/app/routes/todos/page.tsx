@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { SimpleConfirmationDialog } from '@/components/ui/dialog/simple-confirmation-dialog'
-import { colors } from '@/config/colors'
+import { MESSAGES } from '@/constants'
 import { useLogout } from '@/hooks/use-auth'
 import { useTodos } from '@/hooks/use-todos'
 
@@ -80,16 +80,7 @@ const TodosPage = () => {
                 </Button>
                 <Button
                   onClick={openCreateForm}
-                  className="gap-2 text-white shadow-md hover:shadow-lg transition-all"
-                  style={{ backgroundColor: colors.brand.primary }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      colors.brand.primaryHover)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      colors.brand.primary)
-                  }
+                  className="gap-2 text-white shadow-md hover:shadow-lg transition-all bg-brand-primary hover:bg-brand-primary-hover"
                 >
                   <Plus className="w-5 h-5" />
                   Thêm công việc
@@ -109,7 +100,7 @@ const TodosPage = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={loadTodos}
+                  onClick={() => loadTodos()}
                   className="mt-2"
                 >
                   Thử lại
@@ -156,9 +147,9 @@ const TodosPage = () => {
           open={!!deletingId}
           onClose={() => setDeletingTodoId(null)}
           onConfirm={handleDeleteTodo}
-          title="Xóa công việc"
-          description="Bạn có chắc chắn muốn xóa công việc này không? Hành động này không thể hoàn tác."
-          confirmText="Xóa"
+          title={MESSAGES.confirmations.deleteTodo.title}
+          description={MESSAGES.confirmations.deleteTodo.description}
+          confirmText={MESSAGES.confirmations.deleteTodo.confirmText}
           isDangerous
         />
 
@@ -169,10 +160,9 @@ const TodosPage = () => {
             setShowLogoutDialog(false)
             logout()
           }}
-          title="Đăng xuất"
-          description="Bạn có chắc chắn muốn đăng xuất không? Bạn cần đăng nhập lại để truy cập danh sách việc cần làm của mình.
-"
-          confirmText="Đăng xuất"
+          title={MESSAGES.confirmations.logout.title}
+          description={MESSAGES.confirmations.logout.description}
+          confirmText={MESSAGES.confirmations.logout.confirmText}
           isDangerous
         />
       </div>

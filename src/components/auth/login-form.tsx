@@ -1,14 +1,10 @@
+import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { colors } from '@/config/colors'
+import { DEMO_ACCOUNT, MESSAGES } from '@/constants'
 import { useLogin } from '@/hooks/use-auth'
-
-const DEMO_CREDENTIALS = {
-  username: 'addisonw',
-  password: 'addisonwpass',
-}
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('')
@@ -24,13 +20,17 @@ export const LoginForm = () => {
   }
 
   const fillDemoCredentials = () => {
-    setUsername(DEMO_CREDENTIALS.username)
-    setPassword(DEMO_CREDENTIALS.password)
+    setUsername(DEMO_ACCOUNT.username)
+    setPassword(DEMO_ACCOUNT.password)
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
         <label
           htmlFor="username"
           className="block text-sm font-medium text-gray-700 mb-2"
@@ -47,9 +47,13 @@ export const LoginForm = () => {
           disabled={login.isPending}
           className="h-11"
         />
-      </div>
+      </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
         <label
           htmlFor="password"
           className="block text-sm font-medium text-gray-700 mb-2"
@@ -66,34 +70,36 @@ export const LoginForm = () => {
           disabled={login.isPending}
           className="h-11"
         />
-      </div>
+      </motion.div>
 
       {login.isError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="bg-red-50 border border-red-200 rounded-lg p-4"
+        >
           <p className="text-sm text-red-800">
             {login.error instanceof Error
               ? login.error.message
-              : 'Login failed. Please try again.'}
+              : MESSAGES.errors.loginFailed}
           </p>
-        </div>
+        </motion.div>
       )}
 
-      <Button
-        type="submit"
-        className="w-full h-11 text-white font-medium shadow-md hover:shadow-lg transition-all cursor-pointer"
-        disabled={login.isPending}
-        style={{ backgroundColor: colors.brand.primary }}
-        onMouseEnter={(e) =>
-          !e.currentTarget.disabled &&
-          (e.currentTarget.style.backgroundColor = colors.brand.primaryHover)
-        }
-        onMouseLeave={(e) =>
-          !e.currentTarget.disabled &&
-          (e.currentTarget.style.backgroundColor = colors.brand.primary)
-        }
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
       >
-        {login.isPending ? 'Logging in...' : 'Đăng nhập'}
-      </Button>
+        <Button
+          type="submit"
+          className="w-full h-11 text-white font-medium shadow-md hover:shadow-lg transition-all cursor-pointer bg-brand-primary hover:bg-brand-primary-hover"
+          disabled={login.isPending}
+        >
+          {login.isPending ? 'Logging in...' : 'Đăng nhập'}
+        </Button>
+      </motion.div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -101,18 +107,23 @@ export const LoginForm = () => {
         </div>
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+        className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3"
+      >
         <div className="space-y-2 text-sm">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Tên đăng nhập:</span>
             <code className="font-mono text-sm bg-white px-2 py-1 rounded border border-gray-200">
-              {DEMO_CREDENTIALS.username}
+              {DEMO_ACCOUNT.username}
             </code>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Mật khẩu:</span>
             <code className="font-mono text-sm bg-white px-2 py-1 rounded border border-gray-200">
-              {DEMO_CREDENTIALS.password}
+              {DEMO_ACCOUNT.password}
             </code>
           </div>
         </div>
@@ -126,7 +137,7 @@ export const LoginForm = () => {
         >
           Sử dụng thông tin này để đăng nhập
         </Button>
-      </div>
+      </motion.div>
     </form>
   )
 }

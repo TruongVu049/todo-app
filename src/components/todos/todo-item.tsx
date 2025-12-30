@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { Trash2, Edit } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,7 +20,12 @@ export const TodoItem = ({
   onDelete,
 }: TodoItemProps) => {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
       className={cn(
         'group flex items-center justify-between gap-4 p-4 bg-white rounded-lg border transition-all',
         todo.completed
@@ -63,6 +69,6 @@ export const TodoItem = ({
           <Trash2 className="w-4 h-4 text-red-600" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }

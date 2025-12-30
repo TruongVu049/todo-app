@@ -20,6 +20,10 @@
   --font-sans: Inter var, ui-sans-serif, system-ui, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* Brand colors */
+  --color-brand-primary: #00a85a;
+  --color-brand-primary-hover: #008a4a;
+
   /* Light mode colors */
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.141 0.005 285.823);

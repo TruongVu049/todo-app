@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router'
 import logo from '@/assets/logo.png'
 import { Head } from '@/components/seo'
 import { Button } from '@/components/ui/button'
-import { colors } from '@/config/colors'
 import { paths } from '@/config/paths'
 
 const Home = () => {
@@ -108,15 +107,7 @@ const Home = () => {
             <motion.div variants={itemVariants}>
               <Button
                 onClick={handleGetStarted}
-                className="rounded-lg px-8 py-6 text-lg font-medium text-white shadow-md hover:shadow-lg transition-all"
-                style={{ backgroundColor: colors.brand.primary }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    colors.brand.primaryHover)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.brand.primary)
-                }
+                className="rounded-lg px-8 py-6 text-lg font-medium text-white shadow-md hover:shadow-lg transition-all bg-brand-primary hover:bg-brand-primary-hover"
               >
                 Bắt đầu ngay
               </Button>
