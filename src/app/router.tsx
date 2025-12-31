@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 
+import ProtectedRoute from '@/components/protected-route'
+
+import { AuthLayout } from './layouts/auth-layout'
+import { MainLayout } from './layouts/main-layout'
+
 export const createAppRouter = () =>
   createBrowserRouter([
     {
@@ -10,18 +15,34 @@ export const createAppRouter = () =>
 
     {
       path: '/login',
-      lazy: async () => {
-        const { default: Login } = await import('./routes/login/page')
-        return { element: <Login /> }
-      },
+      element: <AuthLayout />,
+      children: [
+        {
+          index: true,
+          lazy: async () => {
+            const { default: Login } = await import('./routes/login/page')
+            return { element: <Login /> }
+          },
+        },
+      ],
     },
 
     {
       path: '/todos',
-      lazy: async () => {
-        const { default: Todos } = await import('./routes/todos/page')
-        return { element: <Todos /> }
-      },
+      element: (
+        <ProtectedRoute>
+          <MainLayout />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          index: true,
+          lazy: async () => {
+            const { default: Todos } = await import('./routes/todos/page')
+            return { element: <Todos /> }
+          },
+        },
+      ],
     },
 
     {
