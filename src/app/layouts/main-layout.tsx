@@ -1,5 +1,7 @@
 import { Outlet } from 'react-router-dom'
 
+import { Link } from '@/components/ui/link'
+import { paths } from '@/config/paths'
 import { useAuth } from '@/hooks/use-auth'
 
 export const MainLayout = () => {
@@ -9,7 +11,22 @@ export const MainLayout = () => {
     <div className="min-h-screen bg-white">
       <header className="border-b">
         <nav className="mx-auto flex max-w-5xl items-center justify-between p-4">
-          <div className="font-semibold">Todo App</div>
+          <div className="flex items-center gap-4">
+            <div className="font-semibold">Todo App</div>
+            <Link
+              to={paths.todos.path}
+              className="text-sm text-slate-600 hover:underline"
+            >
+              Todos
+            </Link>
+            <Link
+              to={paths.new_todolist.path}
+              className="text-sm text-slate-600 hover:underline"
+            >
+              New Todo List
+            </Link>
+          </div>
+
           <div>
             <button
               className="rounded bg-red-500 px-3 py-1 text-sm text-white"
