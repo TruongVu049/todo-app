@@ -1,36 +1,70 @@
 import * as React from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
 import { SettingsModal, ProfileModal } from '@/components/modals'
+import { paths } from '@/config/paths'
 import { cn } from '@/utils/cn'
 
 interface HeaderProps {
   className?: string
   searchQuery?: string
   onSearchChange?: (query: string) => void
+  onMenuClick?: () => void
+  isSidebarOpen?: boolean
 }
 
 export function Header({
   className,
   searchQuery = '',
   onSearchChange,
+  onMenuClick,
+  isSidebarOpen = true,
 }: HeaderProps) {
   const [showNotifications, setShowNotifications] = React.useState(false)
   const [showSettings, setShowSettings] = React.useState(false)
   const [showProfile, setShowProfile] = React.useState(false)
 
+  const location = useLocation()
+  const navigate = useNavigate()
+
   return (
     <>
       <header
         className={cn(
-          'h-16 flex items-center justify-between px-8 bg-white/90 dark:bg-[#101622]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10',
+          'h-14 md:h-16 flex items-center justify-between px-3 md:px-8 bg-white/90 dark:bg-[#101622]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10',
           className,
         )}
       >
+        {/* Menu Button - visible on mobile always, on desktop only when sidebar closed */}
+        <button
+          onClick={onMenuClick}
+          className={cn(
+            'p-2 mr-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800',
+            isSidebarOpen ? 'lg:hidden' : 'block',
+          )}
+          aria-label="Open menu"
+        >
+          <span className="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        {/* Back to Dashboard Button (only if not on dashboard) */}
+        {location.pathname !== paths.dashboard.path && (
+          <button
+            onClick={() => navigate(paths.dashboard.getHref())}
+            className="p-2 mr-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Quay lại trang chọn danh sách"
+          >
+            <span className="material-symbols-outlined text-[24px]">
+              arrow_back
+            </span>
+          </button>
+        )}
+
         {/* Search Bar */}
-        <div className="flex-1 max-w-xl">
+        <div className="flex-1 max-w-[180px] md:max-w-xl">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
-              <span className="material-symbols-outlined text-[20px]">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-2.5 md:pl-3.5 pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+              <span className="material-symbols-outlined text-[18px] md:text-[20px]">
                 search
               </span>
             </div>
@@ -38,15 +72,15 @@ export function Header({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="block w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 pl-11 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 text-sm transition-all"
-              placeholder="Tìm kiếm công việc... (Enter để tìm)"
+              className="block w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2 md:py-2.5 pl-9 md:pl-11 pr-3 md:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 text-xs md:text-sm transition-all"
+              placeholder="Tìm kiếm..."
             />
             {searchQuery && (
               <button
                 onClick={() => onSearchChange?.('')}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 flex items-center pr-2 md:pr-3 text-slate-400 hover:text-slate-600"
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[16px] md:text-[18px]">
                   close
                 </span>
               </button>

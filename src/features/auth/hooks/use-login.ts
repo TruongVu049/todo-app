@@ -25,7 +25,7 @@ export function useLogin() {
       }
 
       setAuth(user, response.accessToken, response.refreshToken)
-      navigate(paths.home.getHref())
+      navigate(paths.dashboard.getHref())
     },
   })
 }

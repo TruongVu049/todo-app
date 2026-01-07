@@ -52,8 +52,14 @@ export function TodoList({
   const { getTodoMetadata, reorderTodosById, setTodoMetadata, updateAnyTodo } =
     useTodoStore()
 
-  // Calendar week navigation state (must be at top level for hooks rules)
-  const [weekOffset, setWeekOffset] = React.useState(0)
+  // Calendar month navigation state (must be at top level for hooks rules)
+  const [monthOffset, setMonthOffset] = React.useState(0)
+  // Selected day for popup (shows all tasks for that day)
+  const [selectedDayPopup, setSelectedDayPopup] = React.useState<{
+    dateStr: string
+    dateDisplay: string
+    todos: typeof todos
+  } | null>(null)
 
   // DnD sensors
   const sensors = useSensors(
@@ -277,125 +283,183 @@ export function TodoList({
     )
   }
 
-  // Calendar View
+  // Calendar View - Monthly with interaction
   if (viewMode === 'calendar') {
     const today = new Date()
     const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+    const monthNames = [
+      'Tháng 1',
+      'Tháng 2',
+      'Tháng 3',
+      'Tháng 4',
+      'Tháng 5',
+      'Tháng 6',
+      'Tháng 7',
+      'Tháng 8',
+      'Tháng 9',
+      'Tháng 10',
+      'Tháng 11',
+      'Tháng 12',
+    ]
 
-    const getWeekDates = (offset: number) => {
-      const dates = []
-      const startOfWeek = new Date(today)
-      startOfWeek.setDate(today.getDate() - today.getDay() + offset * 7)
+    // Helper to get local date string YYYY-MM-DD
+    const getLocalDateStr = (d: Date = new Date()) => {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
 
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek)
-        date.setDate(startOfWeek.getDate() + i)
-        dates.push(date)
+    const todayStr = getLocalDateStr(today)
+    const tomorrowDate = new Date(today)
+    tomorrowDate.setDate(today.getDate() + 1)
+    const tomorrowStr = getLocalDateStr(tomorrowDate)
+
+    // Get current month based on offset
+    const currentMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() + monthOffset,
+      1,
+    )
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+
+    // Get calendar days for current month
+    const getCalendarDays = () => {
+      const firstDay = new Date(year, month, 1)
+      const lastDay = new Date(year, month + 1, 0)
+
+      const calendarDays: {
+        date: Date
+        dateStr: string
+        isCurrentMonth: boolean
+      }[] = []
+
+      // Add days from previous month to fill first week
+      const startDayOfWeek = firstDay.getDay()
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const date = new Date(year, month, -i)
+        calendarDays.push({
+          date,
+          dateStr: getLocalDateStr(date),
+          isCurrentMonth: false,
+        })
       }
-      return dates
+
+      // Add days of current month
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day)
+        calendarDays.push({
+          date,
+          dateStr: getLocalDateStr(date),
+          isCurrentMonth: true,
+        })
+      }
+
+      // Add days from next month to complete last week
+      const remainingDays = 7 - (calendarDays.length % 7)
+      if (remainingDays < 7) {
+        for (let i = 1; i <= remainingDays; i++) {
+          const date = new Date(year, month + 1, i)
+          calendarDays.push({
+            date,
+            dateStr: getLocalDateStr(date),
+            isCurrentMonth: false,
+          })
+        }
+      }
+
+      return calendarDays
     }
 
-    const weekDates = getWeekDates(weekOffset)
+    const calendarDays = getCalendarDays()
 
-    // Get month/year for header based on week dates
-    const weekMonth = weekDates[3].toLocaleDateString('vi-VN', {
-      month: 'long',
-      year: 'numeric',
-    })
+    // Map todos by date
+    const getTodosByDate = () => {
+      const map: Record<string, typeof allTodos> = {}
 
-    const getTodosForDay = (date: Date) => {
-      const checkToday = new Date(today)
-      checkToday.setHours(0, 0, 0, 0)
-      const checkDate = new Date(date)
-      checkDate.setHours(0, 0, 0, 0)
+      allTodos.forEach((todo) => {
+        let dateKey = getTodoDueDate(todo) || ''
 
-      const tomorrow = new Date(checkToday)
-      tomorrow.setDate(checkToday.getDate() + 1)
+        // Convert 'today'/'tomorrow' to actual date strings
+        if (dateKey === 'today') dateKey = todayStr
+        else if (dateKey === 'tomorrow') dateKey = tomorrowStr
 
-      return allTodos.filter((todo) => {
-        const dueDate = getTodoDueDate(todo)
-        if (dueDate === 'today' && checkDate.getTime() === checkToday.getTime())
-          return true
-        if (
-          dueDate === 'tomorrow' &&
-          checkDate.getTime() === tomorrow.getTime()
-        )
-          return true
-        return false
+        if (dateKey) {
+          if (!map[dateKey]) map[dateKey] = []
+          map[dateKey].push(todo)
+        }
       })
+
+      return map
     }
 
-    // Calculate stats for the week
-    const weekTodos = weekDates.flatMap((date) => getTodosForDay(date))
-    const weekCompleted = weekTodos.filter((t) => t.completed).length
-    const weekTotal = weekTodos.length
+    const todosByDate = getTodosByDate()
+
+    // Calculate stats for the month
+    const monthTodos = calendarDays
+      .filter((d) => d.isCurrentMonth)
+      .flatMap((d) => todosByDate[d.dateStr] || [])
+    const monthCompleted = monthTodos.filter((t) => t.completed).length
+    const monthTotal = monthTodos.length
+
+    // Handle toggle complete
+    const handleToggleComplete = (todoId: number) => {
+      const todo = allTodos.find((t) => t.id === todoId)
+      if (todo) {
+        updateAnyTodo(todoId, { completed: !todo.completed })
+      }
+    }
 
     return (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
         {/* Header with navigation */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3 md:p-4 border-b border-slate-200 dark:border-slate-700 gap-3">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setWeekOffset((o) => o - 1)}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-              title="Tuần trước"
+              onClick={() => setMonthOffset((o: number) => o - 1)}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+              title="Tháng trước"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
+              <span className="material-symbols-outlined text-[20px]">
+                chevron_left
+              </span>
             </button>
-            <h3 className="font-semibold text-slate-900 dark:text-white capitalize min-w-[180px] text-center">
-              {weekMonth}
+            <h3 className="text-base md:text-lg font-semibold text-slate-900 dark:text-white min-w-[120px] md:min-w-[150px] text-center">
+              {monthNames[month]} {year}
             </h3>
             <button
-              onClick={() => setWeekOffset((o) => o + 1)}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-              title="Tuần sau"
+              onClick={() => setMonthOffset((o: number) => o + 1)}
+              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+              title="Tháng sau"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <span className="material-symbols-outlined text-[20px]">
+                chevron_right
+              </span>
             </button>
-            {weekOffset !== 0 && (
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Month stats */}
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                <span className="text-lg">📋</span>
+                <span>{monthTotal} công việc</span>
+              </div>
+              <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <span className="text-lg">✅</span>
+                <span>{monthCompleted} hoàn thành</span>
+              </div>
+            </div>
+
+            {monthOffset !== 0 && (
               <button
-                onClick={() => setWeekOffset(0)}
-                className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                onClick={() => setMonthOffset(0)}
+                className="px-3 py-1.5 text-xs font-medium bg-primary/10 text-primary rounded-lg hover:bg-primary/20"
               >
                 Hôm nay
               </button>
             )}
-          </div>
-
-          {/* Week stats */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-              <span className="text-lg">📋</span>
-              <span>{weekTotal} công việc</span>
-            </div>
-            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-              <span className="text-lg">✅</span>
-              <span>{weekCompleted} hoàn thành</span>
-            </div>
           </div>
         </div>
 
@@ -405,7 +469,7 @@ export function TodoList({
             <div
               key={day}
               className={cn(
-                'p-2 text-center text-xs font-semibold border-r border-slate-200 dark:border-slate-700 last:border-r-0',
+                'py-2 text-center text-[10px] md:text-xs font-semibold uppercase tracking-wider',
                 i === 0 ? 'text-red-500' : 'text-slate-500 dark:text-slate-400',
               )}
             >
@@ -416,101 +480,173 @@ export function TodoList({
 
         {/* Calendar grid */}
         <div className="grid grid-cols-7">
-          {weekDates.map((date, i) => {
-            const isToday = date.toDateString() === today.toDateString()
-            const tomorrow = new Date(today)
-            tomorrow.setDate(today.getDate() + 1)
-            const isTomorrow = date.toDateString() === tomorrow.toDateString()
-            const isPast = date < today && !isToday
-            const dayTodos = getTodosForDay(date)
-            const completedCount = dayTodos.filter((t) => t.completed).length
-            const pendingCount = dayTodos.length - completedCount
+          {calendarDays.map((day, index) => {
+            const dayTodos = todosByDate[day.dateStr] || []
+            const isToday = day.dateStr === todayStr
+            const isPast = day.dateStr < todayStr
+            const hasOverdue = isPast && dayTodos.some((t) => !t.completed)
 
             return (
               <div
-                key={i}
+                key={index}
                 className={cn(
-                  'min-h-[140px] p-2 border-r border-slate-200 dark:border-slate-700 last:border-r-0 transition-colors',
-                  isToday && 'bg-primary/5 dark:bg-primary/10',
-                  isTomorrow && 'bg-orange-50/50 dark:bg-orange-900/10',
-                  isPast && 'bg-slate-50/30 dark:bg-slate-900/20',
+                  'min-h-[70px] md:min-h-[100px] p-1 md:p-2 border-b border-r border-slate-100 dark:border-slate-700/50',
+                  !day.isCurrentMonth && 'bg-slate-50 dark:bg-slate-800/30',
+                  isToday && 'bg-primary/5',
                 )}
               >
-                {/* Day header */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1">
-                    <div
-                      className={cn(
-                        'text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-all',
-                        isToday
-                          ? 'bg-primary text-white shadow-md'
+                {/* Day Number */}
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className={cn(
+                      'text-xs md:text-sm font-medium',
+                      !day.isCurrentMonth
+                        ? 'text-slate-300 dark:text-slate-600'
+                        : isToday
+                          ? 'text-primary font-bold'
                           : isPast
                             ? 'text-slate-400'
                             : 'text-slate-700 dark:text-slate-300',
-                      )}
-                    >
-                      {date.getDate()}
-                    </div>
-                    {isToday && (
-                      <span className="text-[10px] text-primary font-semibold animate-pulse">
-                        Hôm nay
-                      </span>
                     )}
-                    {isTomorrow && (
-                      <span className="text-[10px] text-orange-500 font-medium">
-                        Ngày mai
-                      </span>
-                    )}
-                  </div>
-                  {dayTodos.length > 0 && (
-                    <div className="flex gap-1">
-                      {pendingCount > 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
-                          {pendingCount}
-                        </span>
-                      )}
-                      {completedCount > 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-medium">
-                          ✓{completedCount}
-                        </span>
-                      )}
-                    </div>
+                  >
+                    {day.date.getDate()}
+                  </span>
+                  {hasOverdue && (
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500" />
                   )}
                 </div>
 
-                {/* Tasks list */}
-                <div className="space-y-1">
-                  {dayTodos.slice(0, 4).map((todo) => (
-                    <div
+                {/* Todos for this day */}
+                <div className="space-y-0.5 md:space-y-1">
+                  {dayTodos.slice(0, 3).map((todo) => (
+                    <button
                       key={todo.id}
+                      onClick={() => handleToggleComplete(todo.id)}
                       className={cn(
-                        'text-[11px] px-2 py-1 rounded-md truncate transition-all cursor-pointer hover:scale-[1.02]',
+                        'w-full text-left px-1 md:px-1.5 py-0.5 rounded text-[9px] md:text-[11px] truncate font-medium transition-all hover:scale-[1.02]',
                         todo.completed
-                          ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 line-through opacity-70'
-                          : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30',
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 line-through opacity-60'
+                          : isPast
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            : 'bg-primary/10 text-primary dark:bg-primary/20',
                       )}
-                      title={todo.todo}
+                      title={`${todo.todo} (Click để ${todo.completed ? 'bỏ hoàn thành' : 'hoàn thành'})`}
                     >
-                      {todo.todo.length > 18
-                        ? todo.todo.substring(0, 18) + '...'
-                        : todo.todo}
-                    </div>
-                  ))}
-                  {dayTodos.length > 4 && (
-                    <button className="w-full text-[10px] text-slate-400 hover:text-primary text-center py-0.5 transition-colors">
-                      +{dayTodos.length - 4} công việc khác
+                      {todo.todo}
                     </button>
-                  )}
-                  {dayTodos.length === 0 && !isPast && (
-                    <p className="text-[10px] text-slate-300 dark:text-slate-600 text-center py-4 italic">
-                      Trống
-                    </p>
+                  ))}
+                  {dayTodos.length > 3 && (
+                    <button
+                      onClick={() =>
+                        setSelectedDayPopup({
+                          dateStr: day.dateStr,
+                          dateDisplay: `${day.date.getDate()}/${day.date.getMonth() + 1}/${day.date.getFullYear()}`,
+                          todos: dayTodos,
+                        })
+                      }
+                      className="text-[9px] md:text-[10px] text-primary hover:text-primary/80 pl-1 font-medium hover:underline"
+                    >
+                      +{dayTodos.length - 3} khác
+                    </button>
                   )}
                 </div>
               </div>
             )
           })}
         </div>
+
+        {/* Day Tasks Popup Modal */}
+        {selectedDayPopup && (
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="popup-title"
+            tabIndex={-1}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedDayPopup(null)}
+            onKeyDown={(e) => e.key === 'Escape' && setSelectedDayPopup(null)}
+          >
+            {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+            <div
+              role="document"
+              tabIndex={-1}
+              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-[90%] max-w-md max-h-[80vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
+                    📅 Ngày {selectedDayPopup.dateDisplay}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {selectedDayPopup.todos.length} công việc
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedDayPopup(null)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    close
+                  </span>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-4 overflow-y-auto max-h-[60vh] space-y-2">
+                {selectedDayPopup.todos.map((todo) => (
+                  <button
+                    key={todo.id}
+                    onClick={() => handleToggleComplete(todo.id)}
+                    className={cn(
+                      'w-full text-left px-3 py-2 rounded-lg text-sm transition-all hover:scale-[1.01] flex items-center gap-2',
+                      todo.completed
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                        : selectedDayPopup.dateStr < getLocalDateStr(today)
+                          ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                          : 'bg-slate-50 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'material-symbols-outlined text-[18px]',
+                        todo.completed ? 'text-emerald-500' : 'text-slate-400',
+                      )}
+                    >
+                      {todo.completed
+                        ? 'check_circle'
+                        : 'radio_button_unchecked'}
+                    </span>
+                    <span
+                      className={cn(
+                        todo.completed && 'line-through opacity-70',
+                      )}
+                    >
+                      {todo.todo}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <span className="text-xs text-slate-500">
+                  ✅ {selectedDayPopup.todos.filter((t) => t.completed).length}{' '}
+                  / {selectedDayPopup.todos.length} hoàn thành
+                </span>
+                <button
+                  onClick={() => setSelectedDayPopup(null)}
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

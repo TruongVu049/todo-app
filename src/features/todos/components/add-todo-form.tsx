@@ -168,10 +168,12 @@ export function AddTodoForm({ inputRef, currentProject }: AddTodoFormProps) {
   return (
     <div className="space-y-3">
       {/* Input Row */}
-      <div className="relative flex items-center gap-3 bg-white dark:bg-[#1e2736] border border-slate-200 dark:border-slate-700 rounded-xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary/50">
+      <div className="relative flex items-center gap-2 md:gap-3 bg-white dark:bg-[#1e2736] border border-slate-200 dark:border-slate-700 rounded-xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary/50">
         {/* Plus Icon */}
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary shrink-0">
-          <span className="material-symbols-outlined text-[20px]">add</span>
+        <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary/10 text-primary shrink-0">
+          <span className="material-symbols-outlined text-[18px] md:text-[20px]">
+            add
+          </span>
         </div>
 
         {/* Input */}
@@ -181,9 +183,9 @@ export function AddTodoForm({ inputRef, currentProject }: AddTodoFormProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Thêm công việc mới... (Enter để thêm)"
+          placeholder="Thêm công việc mới... (Enter)"
           disabled={isSubmitting}
-          className="flex-1 bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 text-[15px] outline-none disabled:opacity-50"
+          className="flex-1 bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 text-sm md:text-[15px] outline-none disabled:opacity-50 min-w-0"
         />
 
         {/* Submit Button */}
@@ -191,17 +193,17 @@ export function AddTodoForm({ inputRef, currentProject }: AddTodoFormProps) {
           type="button"
           onClick={handleSubmit}
           disabled={!text.trim() || isSubmitting}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0"
+          className="px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-1.5 shrink-0"
         >
-          <span className="material-symbols-outlined text-[18px]">
+          <span className="material-symbols-outlined text-[16px] md:text-[18px]">
             add_task
           </span>
-          Thêm
+          <span className="hidden md:inline">Thêm</span>
         </button>
       </div>
 
       {/* Options Row */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
         {/* Date Picker */}
         <div className="relative">
           <button

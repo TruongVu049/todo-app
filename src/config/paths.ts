@@ -1,7 +1,11 @@
 export const paths = {
-  home: {
+  dashboard: {
     path: '/',
     getHref: () => '/',
+  },
+  home: {
+    path: '/todos',
+    getHref: () => '/todos',
   },
   login: {
     path: '/auth/login',
@@ -10,5 +14,9 @@ export const paths = {
   register: {
     path: '/auth/register',
     getHref: () => '/auth/register',
+  },
+  todoChallenge: {
+    path: '/todo-challenge',
+    getHref: () => '/todo-challenge',
   },
 } as const

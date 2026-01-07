@@ -30,6 +30,7 @@ interface SidebarProps {
   advancedFilters?: FilterOptions
   onAdvancedFiltersChange?: (filters: FilterOptions) => void
   overdueCount?: number
+  onClose?: () => void
 }
 
 const DEFAULT_PROJECTS: Project[] = [
@@ -54,6 +55,7 @@ export function Sidebar({
   advancedFilters,
   onAdvancedFiltersChange,
   overdueCount = 0,
+  onClose,
 }: SidebarProps) {
   const [projects, setProjects] = React.useState<Project[]>(DEFAULT_PROJECTS)
   const [showAddProject, setShowAddProject] = React.useState(false)
@@ -118,16 +120,16 @@ export function Sidebar({
     <>
       <aside
         className={cn(
-          'w-64 bg-white dark:bg-[#151c2a] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0',
+          'w-64 h-full bg-white dark:bg-[#151c2a] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0',
           className,
         )}
       >
         {/* Logo Area */}
-        <button
-          onClick={handleLogoClick}
-          className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 w-full text-left"
-        >
-          <div className="flex items-center gap-2.5">
+        <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-800/50">
+          <button
+            onClick={handleLogoClick}
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
             <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-sm">
               <span className="material-symbols-outlined text-[18px]">
                 check
@@ -136,8 +138,20 @@ export function Sidebar({
             <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
               TaskDash
             </h2>
-          </div>
-        </button>
+          </button>
+          {/* Close Button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="ml-auto p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="Close sidebar"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                close
+              </span>
+            </button>
+          )}
+        </div>
 
         {/* Nav Links */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">

@@ -21,7 +21,7 @@ export type ProjectFilter = string
 
 const Home = () => {
   const { data, isLoading, isError, error, refetch } = useTodos()
-  const { localTodos, getTodoMetadata } = useTodoStore()
+  const { localTodos, getTodoMetadata, todoMetadata } = useTodoStore()
 
   const apiTodos = React.useMemo(() => data?.todos || [], [data?.todos])
 
@@ -44,7 +44,7 @@ const Home = () => {
       setTodoOrder(allIds)
       initializedRef.current = true
     }
-  }, [localTodos.length, apiTodos.length, todoOrder.length, setTodoOrder])
+  }, [localTodos, apiTodos, todoOrder, setTodoOrder])
 
   // When new todos are added, add them to the order
   React.useEffect(() => {
@@ -60,7 +60,7 @@ const Home = () => {
     if (newIds.length > 0) {
       setTodoOrder([...newIds, ...todoOrder])
     }
-  }, [localTodos.length, apiTodos.length]) // Only check when counts change
+  }, [localTodos, apiTodos, todoOrder, setTodoOrder]) // Only check when counts change
 
   // Get apiTodoOverrides for merging
   const { apiTodoOverrides } = useTodoStore()
@@ -182,25 +182,35 @@ const Home = () => {
 
   // Calculate counts for sidebar
   const todayCount = React.useMemo(() => {
+    // Reference todoMetadata to ensure re-calculation on metadata changes
+    if (todoMetadata) {
+      /* trigger */
+    }
     return allTodos.filter((t) => !t.completed && getTodoDueDate(t) === 'today')
       .length
-  }, [allTodos, getTodoDueDate])
+  }, [allTodos, getTodoDueDate, todoMetadata])
 
   const tomorrowCount = React.useMemo(() => {
+    if (todoMetadata) {
+      /* trigger */
+    }
     return allTodos.filter(
       (t) => !t.completed && getTodoDueDate(t) === 'tomorrow',
     ).length
-  }, [allTodos, getTodoDueDate])
+  }, [allTodos, getTodoDueDate, todoMetadata])
 
   const overdueCount = React.useMemo(() => {
     const today = new Date().toISOString().split('T')[0]
     return allTodos.filter((t) => {
+      if (todoMetadata) {
+        /* trigger */
+      }
       if (t.completed) return false
       const dueDate = getTodoDueDate(t)
       if (dueDate === 'today' || dueDate === 'tomorrow') return false
       return dueDate < today
     }).length
-  }, [allTodos, getTodoDueDate])
+  }, [allTodos, getTodoDueDate, todoMetadata])
 
   // Filter todos
   const filteredTodos = React.useMemo(() => {

@@ -27,10 +27,28 @@ export const createAppRouter = () =>
       element: <ProtectedRoute />,
       children: [
         {
+          path: paths.dashboard.path,
+          lazy: async () => {
+            const { default: Dashboard } = await import(
+              './routes/dashboard/page'
+            )
+            return { element: <Dashboard /> }
+          },
+        },
+        {
           path: paths.home.path,
           lazy: async () => {
             const { default: Home } = await import('./routes/home/page')
             return { element: <Home /> }
+          },
+        },
+        {
+          path: paths.todoChallenge.path,
+          lazy: async () => {
+            const { TodoPage } = await import(
+              '@/features/todo-challenge/todo-page'
+            )
+            return { element: <TodoPage /> }
           },
         },
       ],
