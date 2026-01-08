@@ -46,26 +46,6 @@ export const createAppRouter = () =>
     },
 
     {
-      path: '/new-todolist',
-      element: (
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
-      ),
-      children: [
-        {
-          index: true,
-          lazy: async () => {
-            const { default: NewTodoList } = await import(
-              './routes/new-todolist/page'
-            )
-            return { element: <NewTodoList /> }
-          },
-        },
-      ],
-    },
-
-    {
       path: '*',
       element: <Navigate to="/todos" replace />,
     },

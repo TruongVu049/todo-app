@@ -8,7 +8,4 @@ export const paths = {
   todos: {
     path: '/todos',
   },
-  new_todolist: {
-    path: '/new_todolist',
-  },
 }
