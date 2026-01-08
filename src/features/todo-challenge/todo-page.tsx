@@ -194,6 +194,8 @@ export const TodoPage: React.FC = () => {
     return todos
   }, [todos, navFilter])
 
+  console.log('RENDER')
+
   return (
     <>
       <Head

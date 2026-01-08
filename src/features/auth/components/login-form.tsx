@@ -160,10 +160,10 @@ export function LoginForm() {
           disabled={loginMutation.isPending}
         >
           {loginMutation.isPending ? (
-            <>
-              <Loader2Icon className="mr-2 size-4 animate-spin" />
-              Signing in...
-            </>
+            <div className="flex items-center justify-center gap-2">
+              <Loader2Icon className="size-4 animate-spin" />
+              <span>Signing in...</span>
+            </div>
           ) : (
             'Sign in'
           )}
