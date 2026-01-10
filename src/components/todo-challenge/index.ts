@@ -1,3 +1,3 @@
-export * from './todo-form';
-export * from './todo-item';
-export * from './todo-list';
+export { TodoForm, validateTodoText } from './todo-form.js';
+export { TodoItem } from './todo-item.js';
+export { TodoList } from './todo-list.js';
