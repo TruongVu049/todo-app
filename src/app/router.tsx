@@ -42,6 +42,13 @@ export const createAppRouter = () =>
             return { element: <Home /> }
           },
         },
+        {
+          path: '/todo-challenge',
+          lazy: async () => {
+            const { default: TodoChallenge } = await import('./routes/todo-challenge/page')
+            return { element: <TodoChallenge /> }
+          },
+        },
       ],
     },
     // Redirect and 404
