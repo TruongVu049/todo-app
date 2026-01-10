@@ -1,3 +1,4 @@
+import { debounce } from 'lodash-es'
 import * as React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -26,6 +27,45 @@ export function Header({
 
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Local state for immediate UI feedback
+  const [localSearchValue, setLocalSearchValue] = React.useState(searchQuery)
+
+  // Sync local state with prop when it changes from outside
+  React.useEffect(() => {
+    setLocalSearchValue(searchQuery)
+  }, [searchQuery])
+
+  // Debounced callback - only triggers onSearchChange after 300ms of no typing
+  const debouncedSearch = React.useMemo(
+    () =>
+      debounce((value: string) => {
+        onSearchChange?.(value)
+      }, 300),
+    [onSearchChange],
+  )
+
+  // Cleanup debounce on unmount
+  React.useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
+
+  const handleSearchChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value
+      setLocalSearchValue(value) // Immediate UI update
+      debouncedSearch(value) // Debounced filter update
+    },
+    [debouncedSearch],
+  )
+
+  const handleClearSearch = React.useCallback(() => {
+    setLocalSearchValue('')
+    debouncedSearch.cancel()
+    onSearchChange?.('') // Immediate clear
+  }, [debouncedSearch, onSearchChange])
 
   return (
     <>
@@ -70,14 +110,15 @@ export function Header({
             </div>
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
+              value={localSearchValue}
+              onChange={handleSearchChange}
               className="block w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2 md:py-2.5 pl-9 md:pl-11 pr-3 md:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 text-xs md:text-sm transition-all"
               placeholder="Tìm kiếm..."
             />
-            {searchQuery && (
+            {localSearchValue && (
               <button
-                onClick={() => onSearchChange?.('')}
+                type="button"
+                onClick={handleClearSearch}
                 className="absolute inset-y-0 right-0 flex items-center pr-2 md:pr-3 text-slate-400 hover:text-slate-600"
               >
                 <span className="material-symbols-outlined text-[16px] md:text-[18px]">
