@@ -19,6 +19,12 @@ export const MainLayout = () => {
             >
               Todos
             </Link>
+            <Link
+              to={paths.new_todo.path}
+              className="text-sm text-slate-600 hover:underline"
+            >
+              New Todos
+            </Link>
           </div>
 
           <div>
