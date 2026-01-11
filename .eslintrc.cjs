@@ -130,6 +130,16 @@ module.exports = {
       },
     },
     {
+      files: [
+        'src/components/**/*.{ts,tsx}',
+        'src/pages/**/*.{ts,tsx}',
+        'src/hooks/**/*.{ts,tsx}',
+      ],
+      rules: {
+        'check-file/filename-naming-convention': 'off',
+      },
+    },
+    {
       plugins: ['check-file'],
       files: ['src/**/!(__tests__)/*'],
       rules: {

@@ -23,14 +23,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
       message: `API Error: ${response.statusText}`,
       status: response.status,
     }
-
     try {
       const data = await response.json()
       error.message = data.message || error.message
-    } catch {
-      // Ignore JSON parse errors
-    }
-
+      // eslint-disable-next-line no-empty
+    } catch {}
     throw new ApiClientError(error.status, error.message)
   }
 

@@ -7,6 +7,5 @@ export const ProtectedRoute = () => {
   if (!isAuthenticated()) {
     return <Navigate to={paths.login.getHref()} replace />
   }
-
   return <Outlet />
 }
