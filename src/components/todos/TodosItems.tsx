@@ -3,7 +3,7 @@ import React, { useCallback, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card/Card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useTodosSelection } from '@/contexts/select-todos-context'
+import { useSelectionActions } from '@/contexts/select-todos-context'
 import type { Todo } from '@/types/todos'
 import { formatRelativeDate } from '@/utils/helper'
 
@@ -12,6 +12,7 @@ type TodosItemsProps = {
   onDeleteTodo: (id: number) => void
   onToggleTodo: (id: number) => void
   onEditTodo: (todo: Todo) => void
+  isSelected: boolean // Nhận từ parent để tối ưu
 }
 
 export const TodosItems: React.FC<TodosItemsProps> = memo(function TodosItems({
@@ -19,24 +20,13 @@ export const TodosItems: React.FC<TodosItemsProps> = memo(function TodosItems({
   onDeleteTodo,
   onToggleTodo,
   onEditTodo,
+  isSelected,
 }) {
-  const { isSelected, toggleSelection } = useTodosSelection()
-  const selected = isSelected(todo.id)
+  const { toggleSelection } = useSelectionActions()
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (
-        target.closest('input') ||
-        target.closest('button') ||
-        target.closest('[role="checkbox"]')
-      ) {
-        return
-      }
-      toggleSelection(todo.id)
-    },
-    [todo.id, toggleSelection],
-  )
+  const handleCheckSelection = useCallback(() => {
+    toggleSelection(todo.id)
+  }, [todo.id, toggleSelection])
 
   const handleToggle = useCallback(() => {
     onToggleTodo(todo.id)
@@ -50,60 +40,116 @@ export const TodosItems: React.FC<TodosItemsProps> = memo(function TodosItems({
     onDeleteTodo(todo.id)
   }, [todo.id, onDeleteTodo])
 
+  const handleContentClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (
+        target.closest('button') ||
+        target.closest('input[type="checkbox"]')
+      ) {
+        return
+      }
+      handleToggle()
+    },
+    [handleToggle],
+  )
+
   return (
     <Card
-      className={`group cursor-pointer transition-all duration-200 ease-out border
+      className={`group relative transition-all duration-300 border overflow-hidden
         ${
-          selected
-            ? 'ring-2 ring-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-[1.01] shadow-md border-green-200'
-            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-50 hover:shadow-lg hover:-translate-y-1 border-gray-200'
+          isSelected
+            ? 'ring-2 ring-[#00a85a]/50 bg-[#00a85a]/5 shadow-md border-[#00a85a]/30'
+            : todo.completed
+              ? 'bg-gray-50/50 border-gray-200'
+              : 'bg-white hover:shadow-md border-gray-200 hover:border-gray-300'
         }
-        active:scale-[0.99]
       `}
-      onClick={handleCardClick}
       role="article"
     >
-      <div className="flex items-start gap-3">
-        <div className="pt-0.5">
+      <div
+        className={`absolute left-0 top-0 bottom-0 w-1 transition-all ${
+          isSelected
+            ? 'bg-[#00a85a]'
+            : todo.completed
+              ? 'bg-gray-300'
+              : 'bg-transparent group-hover:bg-gray-200'
+        }`}
+      />
+
+      <div className="flex items-center gap-3 pl-2">
+        <div className="flex-shrink-0">
           <Checkbox
-            checked={todo.completed || false}
-            onChange={handleToggle}
-            aria-label={`Đánh dấu ${todo.text} là ${todo.completed ? 'chưa' : 'đã'} hoàn thành`}
+            checked={isSelected}
+            onChange={handleCheckSelection}
+            aria-label="Chọn công việc"
           />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-3">
-            <p
-              className={`text-base leading-relaxed
-                ${todo.completed ? 'line-through text-gray-400' : 'text-gray-800'}
-              `}
-            >
-              {todo.text}
-            </p>
-            <span className="text-xs text-gray-400 whitespace-nowrap">
+        <div
+          className="flex-1 min-w-0 cursor-pointer py-1"
+          onClick={handleContentClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              handleContentClick(e as any)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              {todo.completed && (
+                <svg
+                  className="w-4 h-4 text-[#00a85a] flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+
+              <p
+                className={`text-sm font-medium transition-colors
+                  ${
+                    todo.completed
+                      ? 'line-through text-gray-400'
+                      : 'text-gray-800 group-hover:text-[#00a85a]'
+                  }
+                `}
+              >
+                {todo.text}
+              </p>
+            </div>
+
+            <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
               {formatRelativeDate(todo.updateAt || todo.createAt)}
             </span>
           </div>
+        </div>
 
-          <div className="flex gap-2 mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEdit}
-              className="text-xs px-2 py-1 h-7 border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300 transition-all duration-150 hover:scale-105 active:scale-95"
-            >
-              Chỉnh sửa
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              className="text-xs px-2 py-1 h-7 border-gray-200 text-red-500 hover:bg-red-50 hover:border-red-200 transition-all duration-150 hover:scale-105 active:scale-95"
-            >
-              Xóa
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEdit}
+            className="h-7 px-3 border-gray-300 text-gray-600 hover:bg-[#00a85a] hover:text-white hover:border-[#00a85a] transition-all text-xs"
+          >
+            Sửa
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDelete}
+            className="h-7 px-3 border-gray-300 text-gray-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all text-xs"
+          >
+            Xóa
+          </Button>
         </div>
       </div>
     </Card>

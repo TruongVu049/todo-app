@@ -18,7 +18,7 @@ export const Card: React.FC<CardProps> = memo(function Card({
   return (
     <div
       className={`
-        bg-white rounded-xl shadow-sm border border-gray-100 p-4 
+        bg-white rounded-xl shadow-sm border border-gray-100 p-3 
         transition-all duration-300 ease-out
         ${className}
       `}

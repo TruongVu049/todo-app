@@ -3,7 +3,10 @@ import React, { useMemo, useCallback, memo } from 'react'
 import { TodosEmpty } from '@/components/todos/TodosEmpty'
 import { TodosItems } from '@/components/todos/TodosItems'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useTodosSelection } from '@/contexts/select-todos-context'
+import {
+  useSelectionState,
+  useSelectionActions,
+} from '@/contexts/select-todos-context'
 import type { Todo } from '@/types/todos'
 
 type TodosListProps = {
@@ -19,16 +22,12 @@ export const TodosList: React.FC<TodosListProps> = memo(function TodosList({
   onToggleTodo,
   onEditTodo,
 }) {
-  const { selectAll, clearSelection, selectedIds, selectedCount } =
-    useTodosSelection()
+  const { selectedIds, selectedCount } = useSelectionState()
+  const { selectAll, clearSelection, isSelected } = useSelectionActions()
 
   const allSelected = useMemo(() => {
     return todos.length > 0 && todos.every((todo) => selectedIds.has(todo.id))
   }, [todos, selectedIds])
-
-  const someSelected = useMemo(() => {
-    return todos.some((todo) => selectedIds.has(todo.id)) && !allSelected
-  }, [todos, selectedIds, allSelected])
 
   const handleSelectAll = useCallback(() => {
     if (allSelected) {
@@ -44,7 +43,7 @@ export const TodosList: React.FC<TodosListProps> = memo(function TodosList({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50/50 rounded-lg border border-gray-200">
         <div className="flex items-center gap-3">
           <Checkbox
             checked={allSelected}
@@ -53,13 +52,15 @@ export const TodosList: React.FC<TodosListProps> = memo(function TodosList({
           />
           <span className="text-sm text-gray-600">
             {allSelected ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-            {someSelected && ' (một số đã chọn)'}
           </span>
         </div>
         {selectedCount > 0 && (
-          <span className="text-sm text-green-600 font-medium">
-            Đã chọn {selectedCount}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 bg-[#00a85a] rounded-full"></div>
+            <span className="text-sm text-[#00a85a] font-medium">
+              {selectedCount}
+            </span>
+          </div>
         )}
       </div>
 
@@ -70,6 +71,7 @@ export const TodosList: React.FC<TodosListProps> = memo(function TodosList({
           onDeleteTodo={onDeleteTodo}
           onToggleTodo={onToggleTodo}
           onEditTodo={onEditTodo}
+          isSelected={isSelected(todo.id)}
         />
       ))}
     </div>

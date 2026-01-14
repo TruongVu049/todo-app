@@ -1,94 +1,176 @@
 import React, {
   createContext,
   useContext,
-  useState,
+  useReducer,
   useCallback,
   useMemo,
 } from 'react'
 
-type TodosSelectionContextType = {
+type SelectionState = {
   selectedIds: Set<number>
+}
+
+type SelectionAction =
+  | { type: 'TOGGLE'; payload: number }
+  | { type: 'SELECT_ALL'; payload: number[] }
+  | { type: 'CLEAR' }
+  | { type: 'SELECT_MULTIPLE'; payload: number[] }
+  | { type: 'DESELECT_MULTIPLE'; payload: number[] }
+
+type SelectionStateContextType = {
+  selectedIds: Set<number>
+  selectedCount: number
+  hasSelection: boolean
+}
+
+type SelectionActionsContextType = {
   toggleSelection: (id: number) => void
   selectAll: (ids: number[]) => void
   clearSelection: () => void
+  selectMultiple: (ids: number[]) => void
+  deselectMultiple: (ids: number[]) => void
   isSelected: (id: number) => boolean
-  hasSelection: boolean
-  selectedCount: number
 }
 
-const TodosSelectionContext = createContext<
-  TodosSelectionContextType | undefined
+function selectionReducer(
+  state: SelectionState,
+  action: SelectionAction,
+): SelectionState {
+  switch (action.type) {
+    case 'TOGGLE': {
+      const newSet = new Set(state.selectedIds)
+      if (newSet.has(action.payload)) {
+        newSet.delete(action.payload)
+      } else {
+        newSet.add(action.payload)
+      }
+      return { selectedIds: newSet }
+    }
+
+    case 'SELECT_ALL': {
+      return { selectedIds: new Set(action.payload) }
+    }
+
+    case 'CLEAR': {
+      return { selectedIds: new Set() }
+    }
+
+    case 'SELECT_MULTIPLE': {
+      const newSet = new Set(state.selectedIds)
+      action.payload.forEach((id) => newSet.add(id))
+      return { selectedIds: newSet }
+    }
+
+    case 'DESELECT_MULTIPLE': {
+      const newSet = new Set(state.selectedIds)
+      action.payload.forEach((id) => newSet.delete(id))
+      return { selectedIds: newSet }
+    }
+
+    default:
+      return state
+  }
+}
+
+const SelectionStateContext = createContext<
+  SelectionStateContextType | undefined
+>(undefined)
+
+const SelectionActionsContext = createContext<
+  SelectionActionsContextType | undefined
 >(undefined)
 
 export const TodosSelectionProvider: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [state, dispatch] = useReducer<
+    React.Reducer<SelectionState, SelectionAction>
+  >(selectionReducer, { selectedIds: new Set<number>() })
 
   const toggleSelection = useCallback((id: number) => {
-    setSelectedIds((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(id)) {
-        newSet.delete(id)
-      } else {
-        newSet.add(id)
-      }
-      return newSet
-    })
+    dispatch({ type: 'TOGGLE', payload: id })
   }, [])
 
   const selectAll = useCallback((ids: number[]) => {
-    setSelectedIds(new Set(ids))
+    dispatch({ type: 'SELECT_ALL', payload: ids })
   }, [])
 
   const clearSelection = useCallback(() => {
-    setSelectedIds(new Set())
+    dispatch({ type: 'CLEAR' })
+  }, [])
+
+  const selectMultiple = useCallback((ids: number[]) => {
+    dispatch({ type: 'SELECT_MULTIPLE', payload: ids })
+  }, [])
+
+  const deselectMultiple = useCallback((ids: number[]) => {
+    dispatch({ type: 'DESELECT_MULTIPLE', payload: ids })
   }, [])
 
   const isSelected = useCallback(
-    (id: number) => {
-      return selectedIds.has(id)
-    },
-    [selectedIds],
+    (id: number) => state.selectedIds.has(id),
+    [state.selectedIds],
   )
 
-  const hasSelection = useMemo(() => selectedIds.size > 0, [selectedIds])
-  const selectedCount = useMemo(() => selectedIds.size, [selectedIds])
-
-  const value = useMemo(
+  const stateValue = useMemo(
     () => ({
-      selectedIds,
+      selectedIds: state.selectedIds,
+      selectedCount: state.selectedIds.size,
+      hasSelection: state.selectedIds.size > 0,
+    }),
+    [state.selectedIds],
+  )
+
+  const actionsValue = useMemo(
+    () => ({
       toggleSelection,
       selectAll,
       clearSelection,
+      selectMultiple,
+      deselectMultiple,
       isSelected,
-      hasSelection,
-      selectedCount,
     }),
     [
-      selectedIds,
       toggleSelection,
       selectAll,
       clearSelection,
+      selectMultiple,
+      deselectMultiple,
       isSelected,
-      hasSelection,
-      selectedCount,
     ],
   )
 
   return (
-    <TodosSelectionContext.Provider value={value}>
-      {children}
-    </TodosSelectionContext.Provider>
+    <SelectionStateContext.Provider value={stateValue}>
+      <SelectionActionsContext.Provider value={actionsValue}>
+        {children}
+      </SelectionActionsContext.Provider>
+    </SelectionStateContext.Provider>
   )
 }
 
-export const useTodosSelection = () => {
-  const context = useContext(TodosSelectionContext)
+export const useSelectionState = () => {
+  const context = useContext(SelectionStateContext)
   if (context === undefined) {
     throw new Error(
-      'useTodosSelection phải được sử dụng trong phạm vi TodosSelectionProvider',
+      'useSelectionState phải được sử dụng trong phạm vi TodosSelectionProvider',
     )
   }
   return context
+}
+
+export const useSelectionActions = () => {
+  const context = useContext(SelectionActionsContext)
+  if (context === undefined) {
+    throw new Error(
+      'useSelectionActions phải được sử dụng trong phạm vi TodosSelectionProvider',
+    )
+  }
+  return context
+}
+
+export const useTodosSelection = () => {
+  const state = useSelectionState()
+  const actions = useSelectionActions()
+  return { ...state, ...actions }
 }
