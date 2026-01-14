@@ -18,9 +18,10 @@ export const Pagination: React.FC<PaginationProps> = ({
 }) => {
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
+    const effectiveTotalPages = Math.max(1, totalPages)
 
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
+    if (effectiveTotalPages <= 7) {
+      for (let i = 1; i <= effectiveTotalPages; i++) {
         pages.push(i)
       }
     } else {
@@ -31,69 +32,74 @@ export const Pagination: React.FC<PaginationProps> = ({
       }
 
       const start = Math.max(2, currentPage - 1)
-      const end = Math.min(totalPages - 1, currentPage + 1)
+      const end = Math.min(effectiveTotalPages - 1, currentPage + 1)
 
       for (let i = start; i <= end; i++) {
         pages.push(i)
       }
 
-      if (currentPage < totalPages - 2) {
+      if (currentPage < effectiveTotalPages - 2) {
         pages.push('...')
       }
 
-      pages.push(totalPages)
+      pages.push(effectiveTotalPages)
     }
 
     return pages
   }
 
+  const effectiveTotalPages = Math.max(1, totalPages)
+
   return (
-    <div className={cn('flex items-center justify-center gap-1', className)}>
+    <div className={cn('flex items-center justify-center gap-2', className)}>
       <Button
         variant="outline"
         size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3"
+        className="px-3 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
       >
         ← Trước
       </Button>
 
-      {getPageNumbers().map((page, index) => {
-        if (page === '...') {
+      <div className="flex items-center gap-1">
+        {getPageNumbers().map((page, index) => {
+          if (page === '...') {
+            return (
+              <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                •••
+              </span>
+            )
+          }
+
+          const pageNumber = page as number
+          const isActive = pageNumber === currentPage
+
           return (
-            <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
-              ...
-            </span>
+            <Button
+              key={pageNumber}
+              variant={isActive ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => onPageChange(pageNumber)}
+              className={cn(
+                'min-w-[36px] transition-all duration-200 hover:scale-110 active:scale-95',
+                isActive
+                  ? 'bg-green-600 text-white shadow-md animate-pulse-once'
+                  : 'hover:bg-gray-100',
+              )}
+            >
+              {pageNumber}
+            </Button>
           )
-        }
-
-        const pageNumber = page as number
-        const isActive = pageNumber === currentPage
-
-        return (
-          <Button
-            key={pageNumber}
-            variant={isActive ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onPageChange(pageNumber)}
-            className={cn(
-              'min-w-[36px]',
-              isActive &&
-                'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800',
-            )}
-          >
-            {pageNumber}
-          </Button>
-        )
-      })}
+        })}
+      </div>
 
       <Button
         variant="outline"
         size="sm"
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="px-3"
+        disabled={currentPage === effectiveTotalPages}
+        className="px-3 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
       >
         Sau →
       </Button>

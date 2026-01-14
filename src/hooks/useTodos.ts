@@ -36,6 +36,20 @@ export const useTodos = (storedTodos: Todo[]) => {
     setTodos([])
   }, [])
 
+  const deleteSelected = useCallback((ids: number[]) => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => !ids.includes(todo.id)))
+  }, [])
+
+  const markSelectedAsCompleted = useCallback((ids: number[]) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        ids.includes(todo.id)
+          ? { ...todo, completed: true, updateAt: Date.now() }
+          : todo,
+      ),
+    )
+  }, [])
+
   const loadMockData = useCallback((mockTodos: Todo[]) => {
     setTodos(mockTodos)
   }, [])
@@ -47,6 +61,8 @@ export const useTodos = (storedTodos: Todo[]) => {
     deleteTodo,
     toggleTodo,
     deleteAll,
+    deleteSelected,
+    markSelectedAsCompleted,
     loadMockData,
   }
 }
