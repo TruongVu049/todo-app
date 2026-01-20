@@ -9,8 +9,9 @@ interface DeleteConfirmModalProps {
 
 export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = memo(
   ({ isOpen, onClose, onConfirm, todoText }) => {
-    const modalRef = useRef<HTMLDivElement>(null)
+    const modalRef = useRef<HTMLDivElement>(null) // Ref để quản lý focus khi modal mở
 
+    // Tự động focus vào modal khi mở để hỗ trợ người dùng dùng phím
     useEffect(() => {
       if (isOpen) {
         const frameId = requestAnimationFrame(() => {
@@ -20,6 +21,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = memo(
       }
     }, [isOpen])
 
+    // Đóng modal khi click ra vùng bên ngoài (backdrop)
     const handleBackdropClick = useCallback(
       (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) onClose()
@@ -27,6 +29,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = memo(
       [onClose],
     )
 
+    // Đóng modal khi nhấn phím Escape
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') onClose()
@@ -34,12 +37,13 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = memo(
       [onClose],
     )
 
+    // Thực hiện hành động xóa và đóng modal
     const handleConfirmClick = useCallback(() => {
       onConfirm()
       onClose()
     }, [onConfirm, onClose])
 
-    if (!isOpen) return null
+    if (!isOpen) return null // Không render gì nếu modal không mở
 
     return (
       <div
@@ -49,7 +53,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = memo(
         role="none"
       >
         <div
-          ref={modalRef}
+          ref={modalRef} // Gán ref và cho phép nhận focus (tabIndex={-1})
           className="bg-white dark:bg-[#1e2736] w-full max-w-sm rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 focus:outline-none"
           role="dialog"
           aria-modal="true"

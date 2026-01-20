@@ -14,8 +14,9 @@ interface SearchContextType {
 const SearchContext = createContext<SearchContextType | null>(null)
 
 export function SearchProvider({ children }: { children: ReactNode }) {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // Quản lý state từ khóa tìm kiếm toàn cục (cho tính năng search)
 
+  // useMemo: Đảm bảo value truyền vào Provider chỉ thay đổi khi searchQuery thay đổi
   const value = useMemo(
     () => ({
       searchQuery,
@@ -29,6 +30,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// Hook tiện ích để lấy state search nhanh chóng
 export function useSearch() {
   const context = useContext(SearchContext)
   if (!context) {

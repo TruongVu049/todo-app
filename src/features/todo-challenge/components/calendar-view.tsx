@@ -36,39 +36,41 @@ const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 export const CalendarView: React.FC<CalendarViewProps> = memo(
   ({ todos, onToggleComplete }) => {
-    const { toggleComplete } = useTodoActions()
+    const { toggleComplete } = useTodoActions() // Hook lấy hàm toggle từ context chuyên biệt cho actions
     const handleToggle = useCallback(
       (id: string) => {
-        onToggleComplete?.(id) ?? toggleComplete(id)
+        onToggleComplete?.(id) ?? toggleComplete(id) // Ưu tiên callback từ cha, nếu không thì dùng hàm global
       },
       [onToggleComplete, toggleComplete],
     )
 
-    const [currentDate, setCurrentDate] = useState(new Date())
+    const [currentDate, setCurrentDate] = useState(new Date()) // State lưu tháng/năm hiện tại đang xem trên lịch
     const [selectedDayPopup, setSelectedDayPopup] = useState<{
       dateStr: string
       dateDisplay: string
       todos: Todo[]
-    } | null>(null)
+    } | null>(null) // Quản lý popup hiển thị danh sách công việc khi nhấn vào một ngày
 
-    const todayStr = useMemo(() => getLocalDateStr(), [])
+    const todayStr = useMemo(() => getLocalDateStr(), []) // Chuỗi ngày hôm nay (YYYY-MM-DD)
 
     const tomorrowStr = useMemo(() => {
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
-      return getLocalDateStr(tomorrow)
+      return getLocalDateStr(tomorrow) // Chuỗi ngày mai
     }, [])
 
+    // useMemo: Tính toán các ngày cần hiển thị trong một trang lịch (bao gồm các ngày của tháng trước/sau nếu cần)
     const calendarDays = useMemo(() => {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth()
 
-      const firstDay = new Date(year, month, 1)
-      const lastDay = new Date(year, month + 1, 0)
+      const firstDay = new Date(year, month, 1) // Ngày đầu tiên của tháng
+      const lastDay = new Date(year, month + 1, 0) // Ngày cuối cùng của tháng
 
       const days: { date: Date; dateStr: string; isCurrentMonth: boolean }[] =
         []
 
+      // Bổ sung các ngày cuối cùng của tháng trước để lấp đầy hàng đầu tiên
       const startDayOfWeek = firstDay.getDay()
       for (let i = startDayOfWeek - 1; i >= 0; i--) {
         const date = new Date(year, month, -i)
@@ -79,6 +81,7 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
         })
       }
 
+      // Thêm toàn bộ các ngày trong tháng hiện tại
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(year, month, day)
         days.push({
@@ -88,6 +91,7 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
         })
       }
 
+      // Bổ sung các ngày đầu của tháng sau để lấp đầy hàng cuối cùng
       const remainingDays = 7 - (days.length % 7)
       if (remainingDays < 7) {
         for (let i = 1; i <= remainingDays; i++) {
@@ -103,12 +107,14 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
       return days
     }, [currentDate])
 
+    // useMemo: Nhóm các todo vào một object với key là ngày (YYYY-MM-DD) để truy xuất nhanh khi render grid
     const todosByDate = useMemo(() => {
       const map: Record<string, Todo[]> = {}
 
       todos.forEach((todo) => {
         let dateKey = todo.dueDate || ''
 
+        // Chuẩn hóa key dựa trên giá trị đặc biệt 'today'/'tomorrow'
         if (dateKey === 'today') dateKey = todayStr
         else if (dateKey === 'tomorrow') dateKey = tomorrowStr
 
@@ -121,18 +127,21 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
       return map
     }, [todos, todayStr, tomorrowStr])
 
+    // Chuyển sang tháng trước
     const goToPreviousMonth = useCallback(() => {
       setCurrentDate(
         (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
       )
     }, [])
 
+    // Chuyển sang tháng sau
     const goToNextMonth = useCallback(() => {
       setCurrentDate(
         (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
       )
     }, [])
 
+    // Quay lại ngày hôm nay
     const goToToday = useCallback(() => {
       setCurrentDate(new Date())
     }, [])
@@ -141,6 +150,7 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
       setSelectedDayPopup(null)
     }, [])
 
+    // Xử lý phím tắt khi popup đang mở (Escape để đóng)
     const handlePopupKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') closePopup()
@@ -148,12 +158,14 @@ export const CalendarView: React.FC<CalendarViewProps> = memo(
       [closePopup],
     )
 
+    // Text hiển thị tiêu đề lịch (ví dụ: Tháng 1 2024)
     const headerText = useMemo(
       () =>
         `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`,
       [currentDate],
     )
 
+    // Tính số lượng công việc đã xong trong popup
     const completedInPopup = useMemo(
       () => selectedDayPopup?.todos.filter((t) => t.completed).length ?? 0,
       [selectedDayPopup],

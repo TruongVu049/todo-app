@@ -17,13 +17,13 @@ interface TodoListProps {
 export const TodoList: React.FC<TodoListProps> = memo(
   ({ todos, viewMode, className }) => {
     const { updateTodo, openDeleteModal, toggleComplete } = useTodoActions()
-    const parentRef = useRef<HTMLDivElement>(null)
+    const parentRef = useRef<HTMLDivElement>(null) // Tạo ref để theo dõi element bao bọc danh sách (cần thiết cho virtualizer)
 
     const virtualizer = useVirtualizer({
-      count: todos.length,
-      getScrollElement: () => parentRef.current,
-      estimateSize: () => 80,
-      overscan: 5,
+      count: todos.length, // Tổng số lượng item trong danh sách
+      getScrollElement: () => parentRef.current, // Chỉ định element nào sẽ thực hiện việc scroll
+      estimateSize: () => 80, // Ước tính chiều cao mỗi item (80px) để tính toán tổng diện tích scroll
+      overscan: 5, // Render thêm 5 item phía trên/dưới vùng nhìn thấy để scroll mượt hơn
     })
 
     if (todos.length === 0) {
@@ -34,6 +34,7 @@ export const TodoList: React.FC<TodoListProps> = memo(
       )
     }
 
+    // Nếu không phải chế độ xem danh sách (List View), chúng ta render bình thường vì virtualization phức tạp với Grid/Board
     if (viewMode !== 'list') {
       return (
         <div className={className}>
@@ -53,22 +54,22 @@ export const TodoList: React.FC<TodoListProps> = memo(
 
     return (
       <div
-        ref={parentRef}
+        ref={parentRef} // Gán ref vào div chứa scroll
         className="max-h-[600px] overflow-auto pr-2 custom-scrollbar"
       >
         <div
           className="relative w-full"
-          style={{ height: `${virtualizer.getTotalSize()}px` }}
+          style={{ height: `${virtualizer.getTotalSize()}px` }} // Thiết lập tổng chiều cao thực tế dựa trên số lượng item
         >
           {virtualizer.getVirtualItems().map((virtualItem) => {
-            const todo = todos[virtualItem.index]
+            const todo = todos[virtualItem.index] // Lấy đúng todo data dựa trên index đang được virtualizer chỉ định
             return (
               <div
                 key={virtualItem.key}
-                className="absolute top-0 left-0 w-full"
+                className="absolute top-0 left-0 w-full" // Sử dụng absolute để đặt item đúng vị trí trong vùng scroll
                 style={{
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
+                  height: `${virtualItem.size}px`, // Chiều cao item
+                  transform: `translateY(${virtualItem.start}px)`, // Đẩy item xuống đúng vị trí pixel dựa trên index
                 }}
               >
                 <div className="pb-3">

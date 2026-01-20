@@ -16,11 +16,14 @@ export const StatsCards: React.FC<StatsCardsProps> = memo(
     overdueCount: propsOverdueCount,
     tomorrowCount: propsTomorrowCount,
   }) => {
+    // Luôn tính toán số lượng công việc chưa hoàn thành (pending) trong useMemo
     const pendingCount = useMemo(
       () => todos.filter((t) => !t.completed).length,
       [todos],
     )
 
+    // Ưu tiên sử dụng giá trị count truyền từ props (đã được tính toán ở context)
+    // Nếu không có props thì dùng giá trị pendingCount tính tại chỗ
     const displayTodayCount = useMemo(
       () => (propsTodayCount !== undefined ? propsTodayCount : pendingCount),
       [propsTodayCount, pendingCount],
@@ -38,7 +41,7 @@ export const StatsCards: React.FC<StatsCardsProps> = memo(
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {}
+        {/* Thẻ hiển thị công việc hôm nay */}
         <div className="p-5 rounded-xl bg-white dark:bg-[#1e2736] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between h-[130px] group hover:border-primary/40 hover:shadow-md transition-all">
           <div className="flex justify-between items-start">
             <span className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500">
@@ -60,7 +63,7 @@ export const StatsCards: React.FC<StatsCardsProps> = memo(
           </div>
         </div>
 
-        {}
+        {/* Thẻ hiển thị công việc khẩn cấp (quá hạn) */}
         <div className="p-5 rounded-xl bg-white dark:bg-[#1e2736] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between h-[130px] group hover:border-red-300 hover:shadow-md transition-all">
           <div className="flex justify-between items-start">
             <span className="p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500">
@@ -82,7 +85,7 @@ export const StatsCards: React.FC<StatsCardsProps> = memo(
           </div>
         </div>
 
-        {}
+        {/* Thẻ hiển thị công việc dự kiến ngày mai */}
         <div className="p-5 rounded-xl bg-white dark:bg-[#1e2736] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between h-[130px] group hover:border-orange-300 hover:shadow-md transition-all">
           <div className="flex justify-between items-start">
             <span className="p-2.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-500">

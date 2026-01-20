@@ -20,10 +20,11 @@ export const useTodoInput = (
   options: UseTodoInputOptions = {},
 ): UseTodoInputReturn => {
   const {
-    minLength = MIN_TEXT_LENGTH,
-    onValidationError = (msg) => alert(msg),
+    minLength = MIN_TEXT_LENGTH, // Độ dài tối thiểu chuẩn (mặc định là 3)
+    onValidationError = (msg) => alert(msg), // Hàm xử lý khi không hợp lệ (mặc định là alert)
   } = options
 
+  // Hàm validate: Kiểm tra xem text nhập vào có hợp lệ không
   const validate = useCallback(
     (text: string): boolean => {
       const trimmed = text.trim()
@@ -36,14 +37,15 @@ export const useTodoInput = (
     [minLength, onValidationError],
   )
 
+  // Hàm xử lý sự kiện phím tắt (Keyboard Shortcuts)
   const handleKeyDown = useCallback(
     (
       e: React.KeyboardEvent<HTMLInputElement>,
-      onEnter: () => void,
-      onEscape?: () => void,
+      onEnter: () => void, // Hành động khi nhấn Enter
+      onEscape?: () => void, // Hành động khi nhấn Escape (tùy chọn)
     ) => {
       if (e.key === 'Enter') {
-        e.preventDefault()
+        e.preventDefault() // Ngăn chặn hành vi mặc định của form
         onEnter()
       }
       if (e.key === 'Escape' && onEscape) {
@@ -57,6 +59,7 @@ export const useTodoInput = (
   return { validate, handleKeyDown }
 }
 
+// Các class CSS dùng chung cho các loại input trong tính năng Todo Challenge
 export const INPUT_STYLES = {
   create:
     'flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-900 dark:text-white',
