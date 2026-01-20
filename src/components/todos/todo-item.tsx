@@ -19,6 +19,7 @@ export function TodoItem({ todo }: TodoItemProps) {
   
   const toggleTodo = useTodoStore((state) => state.toggleTodo)
   const deleteTodo = useTodoStore((state) => state.deleteTodo)
+  const toggleSelect = useTodoStore((state) => state.toggleSelect)
 
   const handleToggle = async () => {
     if (isToggling) return
@@ -49,7 +50,17 @@ export function TodoItem({ todo }: TodoItemProps) {
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className={`flex items-center gap-4 p-2 rounded-lg transition-colors ${
+        todo.selected ? 'bg-blue-50' : ''
+      }`}>
+        {/* Checkbox for multi-select */}
+        <input
+          type="checkbox"
+          checked={todo.selected || false}
+          onChange={() => toggleSelect(todo.id)}
+          className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+        />
+
         <Switch
           checked={todo.completed}
           onCheckedChange={handleToggle}

@@ -58,6 +58,7 @@ export interface Todo {
   completed: boolean
   userId: number
   createdAt?: string // Add timestamp for filtering
+  selected?: boolean // For multi-select feature
 }
 
 export interface CreateTodoRequest {

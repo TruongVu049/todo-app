@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useTodoStore } from '@/stores/todos'
 import { Head } from '@/components/seo'
 import { AddTodoDialog, TodoItem } from '@/components/todos'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { AlertCircle, RefreshCw, Trash2, CheckCircle, ListTodo, CheckCheck, Clock } from 'lucide-react'
 
-type FilterType = 'all' | 'today' | 'custom' | 'range' | 'asc' | 'desc' | 'completed' | 'incomplete'
+type FilterTab = 'all' | 'active' | 'completed'
 
 const Home = () => {
   const todos = useTodoStore((state) => state.todos)
@@ -15,245 +15,195 @@ const Home = () => {
   const error = useTodoStore((state) => state.error)
   const fetchTodos = useTodoStore((state) => state.fetchTodos)
   const clearError = useTodoStore((state) => state.clearError)
+  const selectAll = useTodoStore((state) => state.selectAll)
+  const unselectAll = useTodoStore((state) => state.unselectAll)
+  const deleteSelected = useTodoStore((state) => state.deleteSelected)
+  const completeSelected = useTodoStore((state) => state.completeSelected)
   
-  const [filterType, setFilterType] = useState<FilterType>('all')
-  const [customDate, setCustomDate] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
 
   useEffect(() => {
     fetchTodos()
   }, [fetchTodos])
-  
-  // Filter and sort todos
-  const filteredTodos = todos
-    .filter((todo) => {
-      if (filterType === 'completed') return todo.completed
-      if (filterType === 'incomplete') return !todo.completed
-      if (filterType === 'all' || filterType === 'asc' || filterType === 'desc') return true
-      if (!todo.createdAt) return false
-      
-      const todoDate = new Date(todo.createdAt)
-      const now = new Date()
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      const todoDateStart = new Date(todoDate.getFullYear(), todoDate.getMonth(), todoDate.getDate())
-      
-      switch (filterType) {
-        case 'today':
-          return todayStart.getTime() === todoDateStart.getTime()
-        case 'custom':
-          if (!customDate) return true
-          const selectedDate = new Date(customDate)
-          const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
-          return todoDateStart.getTime() === selectedDateStart.getTime()
-        case 'range':
-          if (!startDate || !endDate) return true
-          const start = new Date(startDate)
-          const end = new Date(endDate)
-          const startDateStart = new Date(start.getFullYear(), start.getMonth(), start.getDate())
-          const endDateStart = new Date(end.getFullYear(), end.getMonth(), end.getDate())
-          return todoDateStart >= startDateStart && todoDateStart <= endDateStart
-        default:
-          return true
-      }
-    })
-    .sort((a, b) => {
-      if (filterType === 'asc') return a.todo.localeCompare(b.todo, 'vi')
-      if (filterType === 'desc') return b.todo.localeCompare(a.todo, 'vi')
-      return 0
-    })
 
-  const handleRefresh = () => {
-    fetchTodos()
-  }
+  const stats = useMemo(() => {
+    const total = todos.length
+    const completed = todos.filter((t) => t.completed).length
+    const active = total - completed
+    const selected = todos.filter((t) => t.selected).length
+    return { total, completed, active, selected }
+  }, [todos])
 
-  const handleFilterChange = (value: string) => {
-    setFilterType(value as FilterType)
-    if (value !== 'custom') setCustomDate('')
-    if (value !== 'range') {
-      setStartDate('')
-      setEndDate('')
+  const filteredTodos = useMemo(() => {
+    switch (activeTab) {
+      case 'completed': return todos.filter((t) => t.completed)
+      case 'active': return todos.filter((t) => !t.completed)
+      default: return todos
     }
+  }, [todos, activeTab])
+
+  const handleRefresh = () => fetchTodos()
+
+  const handleDeleteSelected = async () => {
+    if (stats.selected === 0) return
+    if (!window.confirm(`Xóa ${stats.selected} công việc đã chọn?`)) return
+    setIsDeleting(true)
+    try { await deleteSelected() } catch (e) { console.error(e) } finally { setIsDeleting(false) }
   }
+
+  const handleCompleteSelected = async () => {
+    if (stats.selected === 0) return
+    setIsCompleting(true)
+    try { await completeSelected() } catch (e) { console.error(e) } finally { setIsCompleting(false) }
+  }
+
+  const tabs: { key: FilterTab; label: string; count: number; icon: React.ReactNode }[] = [
+    { key: 'all', label: 'Tất cả', count: stats.total, icon: <ListTodo className="w-4 h-4" /> },
+    { key: 'active', label: 'Đang làm', count: stats.active, icon: <Clock className="w-4 h-4" /> },
+    { key: 'completed', label: 'Hoàn thành', count: stats.completed, icon: <CheckCheck className="w-4 h-4" /> },
+  ]
 
   return (
     <>
       <Head description="Quản lý công việc của bạn" />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          {/* Page Title */}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Công Việc Của Tôi</h1>
-            <p className="text-gray-600 mt-1">Quản lý và theo dõi các công việc hàng ngày</p>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Công Việc Của Tôi</h1>
+          <p className="text-gray-500 text-sm mt-1">Quản lý và theo dõi các công việc hàng ngày</p>
+        </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm font-medium text-red-800">Lỗi</h3>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <span className="text-sm text-red-700">{error}</span>
+            </div>
+            <button onClick={clearError} className="text-red-600 hover:text-red-700 font-bold">×</button>
+          </div>
+        )}
+
+        {/* 2 Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Sidebar - Stats & Actions */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Stats Cards */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-3">Thống kê</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600">Tổng công việc</span>
+                  <span className="text-xl font-bold text-gray-900">{stats.total}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <span className="text-green-600">Đã hoàn thành</span>
+                  <span className="text-xl font-bold text-green-600">{stats.completed}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                  <span className="text-orange-600">Còn lại</span>
+                  <span className="text-xl font-bold text-orange-600">{stats.active}</span>
                 </div>
               </div>
-              <button
-                onClick={clearError}
-                className="text-red-600 hover:text-red-700 text-xl font-semibold"
-              >
-                ×
-              </button>
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <AddTodoDialog onSuccess={handleRefresh} />
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              disabled={loading}
-              className="h-10 px-4"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Đang tải...' : 'Làm Mới'}
-            </Button>
-            
-            {/* Filter Controls */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={filterType}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                className="h-10 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium cursor-pointer hover:border-gray-400 transition-colors"
-              >
-                <option value="all">Tất cả</option>
-                <option value="completed">Đã hoàn thành</option>
-                <option value="incomplete">Chưa hoàn thành</option>
-                <option value="today">Hôm nay</option>
-                <option value="asc">Từ A-Z</option>
-                <option value="desc">Từ Z-A</option>
-                <option value="custom">Chọn ngày</option>
-                <option value="range">Khoảng thời gian</option>
-              </select>
-              
-              {filterType === 'custom' && (
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => setCustomDate(e.target.value)}
-                  className="h-10 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium cursor-pointer hover:border-gray-400 transition-colors"
-                />
-              )}
-              
-              {filterType === 'range' && (
-                <>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => {
-                      setStartDate(e.target.value)
-                      if (e.target.value && endDate) {
-                        const start = new Date(e.target.value)
-                        const end = new Date(endDate)
-                        const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-                        if (diffDays > 30) {
-                          const maxEnd = new Date(start)
-                          maxEnd.setDate(maxEnd.getDate() + 30)
-                          setEndDate(maxEnd.toISOString().split('T')[0])
-                        }
-                      }
-                    }}
-                    className="h-10 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium cursor-pointer hover:border-gray-400 transition-colors"
-                  />
-                  <span className="text-gray-500">→</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => {
-                      if (startDate) {
-                        const start = new Date(startDate)
-                        const end = new Date(e.target.value)
-                        const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-                        if (diffDays > 30) {
-                          alert('Khoảng thời gian tối đa là 30 ngày!')
-                          return
-                        }
-                      }
-                      setEndDate(e.target.value)
-                    }}
-                    min={startDate}
-                    className="h-10 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium cursor-pointer hover:border-gray-400 transition-colors"
-                  />
-                </>
-              )}
+            {/* Actions */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-3">Thao tác</h3>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <AddTodoDialog onSuccess={handleRefresh} />
+                  <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={selectAll} className="flex-1">
+                    Chọn tất cả
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={unselectAll} className="flex-1">
+                    Bỏ chọn
+                  </Button>
+                </div>
+                <Button
+                  variant="outline" size="sm"
+                  onClick={handleCompleteSelected}
+                  disabled={stats.selected === 0 || isCompleting}
+                  className="w-full text-green-600 border-green-300 hover:bg-green-50 hover:text-green-700 disabled:opacity-50"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Hoàn thành ({stats.selected})
+                </Button>
+                <Button
+                  variant="outline" size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={stats.selected === 0 || isDeleting}
+                  className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Xóa ({stats.selected})
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Loading State */}
-          {loading && todos.length === 0 && (
-            <div className="bg-white rounded-lg shadow p-8">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="ml-3 text-gray-600">Đang tải công việc...</p>
+          {/* Right - Todo List */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* Tabs */}
+              <div className="border-b border-gray-200">
+                <div className="flex">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === tab.key
+                          ? 'border-blue-500 text-blue-600 bg-blue-50'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {tab.icon}
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${
+                        activeTab === tab.key ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      }`}>{tab.count}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* Main Grid: Stats + Todos */}
-          {!loading && (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Stats - Left Side */}
-              {filteredTodos.length > 0 && (
-                <div className="lg:col-span-1 space-y-4">
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-gray-600 text-sm font-medium">Tổng Công Việc</p>
-                    <p className="text-4xl font-bold text-gray-900 mt-2">
-                      {filteredTodos.length}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <p className="text-gray-600 text-sm font-medium">Đã Hoàn Thành</p>
-                    <p className="text-4xl font-bold text-green-600 mt-2">
-                      {filteredTodos.filter((t) => t.completed).length}
-                    </p>
-                  </div>
+              {/* Loading */}
+              {loading && todos.length === 0 && (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-3 text-gray-500 text-sm">Đang tải công việc...</p>
                 </div>
               )}
 
-              {/* Todos List - Right Side */}
-              <div className={filteredTodos.length > 0 ? "lg:col-span-3" : "lg:col-span-4"}>
-                <div className="bg-white rounded-lg shadow">
-                  {filteredTodos.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <p className="text-gray-500 text-lg">
-                        {filterType === 'all' || filterType === 'asc' || filterType === 'desc'
-                          ? 'Chưa có công việc nào. Tạo một công việc để bắt đầu!'
-                          : filterType === 'completed'
-                          ? 'Chưa có công việc nào được hoàn thành'
-                          : filterType === 'incomplete'
-                          ? 'Tất cả công việc đã hoàn thành!'
-                          : filterType === 'custom' && customDate
-                          ? `Không có công việc nào vào ngày ${new Date(customDate).toLocaleDateString('vi-VN')}`
-                          : filterType === 'range' && startDate && endDate
-                          ? `Không có công việc nào từ ${new Date(startDate).toLocaleDateString('vi-VN')} đến ${new Date(endDate).toLocaleDateString('vi-VN')}`
-                          : `Không có công việc nào ${filterType === 'today' ? 'hôm nay' : 'trong khoảng thời gian này'}`
-                        }
-                      </p>
+              {/* Todo List */}
+              {!loading && (
+                filteredTodos.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ListTodo className="w-8 h-8 text-gray-400" />
                     </div>
-                  ) : (
-                    <div className="divide-y divide-gray-200 max-h-[calc(100vh-350px)] overflow-y-auto">
-                      {filteredTodos.map((todo, index) => (
-                        <div key={`todo-${todo.id}-${index}`} className="p-4">
-                          <TodoItem todo={todo} />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+                    <p className="text-gray-500">
+                      {activeTab === 'all' ? 'Chưa có công việc nào' : activeTab === 'completed' ? 'Chưa có công việc hoàn thành' : 'Tất cả đã hoàn thành! 🎉'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
+                    {filteredTodos.map((todo) => (
+                      <div key={todo.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <TodoItem todo={todo} />
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </>

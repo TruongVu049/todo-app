@@ -14,6 +14,13 @@ export interface TodoState {
   toggleTodo: (id: number) => Promise<void>
   setTodos: (todos: Todo[]) => void
   clearError: () => void
+  
+  // Multi-select actions
+  toggleSelect: (id: number) => void
+  selectAll: () => void
+  unselectAll: () => void
+  deleteSelected: () => Promise<void>
+  completeSelected: () => Promise<void>
 }
 
 export const useTodoStore = create<TodoState>((set, get) => ({
@@ -26,7 +33,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     try {
       const response = await todosApi.getAll()
       if (Array.isArray(response.todos)) {
-        set({ todos: response.todos, loading: false })
+        set({ todos: response.todos.map(t => ({ ...t, selected: false })), loading: false })
       } else {
         set({ todos: [], error: 'Định dạng dữ liệu không hợp lệ', loading: false })
       }
@@ -41,7 +48,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     try {
       const newTodo = await todosApi.create(data)
       set((state) => ({
-        todos: [newTodo, ...state.todos],
+        todos: [{ ...newTodo, selected: false }, ...state.todos],
       }))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Lỗi thêm công việc'
@@ -55,7 +62,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     try {
       const updated = await todosApi.update(id, data)
       set((state) => ({
-        todos: state.todos.map((t) => (t.id === id ? updated : t)),
+        todos: state.todos.map((t) => (t.id === id ? { ...updated, selected: t.selected } : t)),
       }))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Lỗi cập nhật công việc'
@@ -116,4 +123,70 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   setTodos: (todos) => set({ todos }),
 
   clearError: () => set({ error: null }),
+
+  // Multi-select actions
+  toggleSelect: (id: number) => {
+    set((state) => ({
+      todos: state.todos.map((t) =>
+        t.id === id ? { ...t, selected: !t.selected } : t
+      ),
+    }))
+  },
+
+  selectAll: () => {
+    set((state) => ({
+      todos: state.todos.map((t) => ({ ...t, selected: true })),
+    }))
+  },
+
+  unselectAll: () => {
+    set((state) => ({
+      todos: state.todos.map((t) => ({ ...t, selected: false })),
+    }))
+  },
+
+  deleteSelected: async () => {
+    const selectedTodos = get().todos.filter((t) => t.selected)
+    if (selectedTodos.length === 0) return
+
+    const previousTodos = get().todos
+
+    // Optimistic delete
+    set((state) => ({
+      todos: state.todos.filter((t) => !t.selected),
+      error: null,
+    }))
+
+    try {
+      await Promise.all(selectedTodos.map((t) => todosApi.delete(t.id)))
+    } catch (error) {
+      set({ todos: previousTodos })
+      const message = error instanceof Error ? error.message : 'Lỗi xóa công việc'
+      set({ error: message })
+      throw error
+    }
+  },
+
+  completeSelected: async () => {
+    const selectedTodos = get().todos.filter((t) => t.selected && !t.completed)
+    if (selectedTodos.length === 0) return
+
+    const previousTodos = get().todos
+
+    // Optimistic update
+    set((state) => ({
+      todos: state.todos.map((t) =>
+        t.selected ? { ...t, completed: true } : t
+      ),
+    }))
+
+    try {
+      await Promise.all(selectedTodos.map((t) => todosApi.update(t.id, { completed: true })))
+    } catch (error) {
+      set({ todos: previousTodos })
+      const message = error instanceof Error ? error.message : 'Lỗi cập nhật công việc'
+      set({ error: message })
+      throw error
+    }
+  },
 }))

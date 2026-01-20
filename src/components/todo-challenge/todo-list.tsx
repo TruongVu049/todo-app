@@ -1,17 +1,29 @@
-import { TodoLocal } from "@/types/todo";
-import { TodoItem } from "./todo-item";
+import { memo } from 'react';
+import { TodoLocal } from '@/types/todo';
+import { TodoItem } from './todo-item';
 
 type TodoListProps = {
   todos: TodoLocal[];
   onEdit: (id: string, text: string) => void;
   onDelete: (id: string) => void;
+  onToggleSelect: (id: string) => void;
+  onToggleComplete: (id: string) => void;
 };
 
-export function TodoList({ todos, onEdit, onDelete }: TodoListProps) {
+/**
+ * TodoList Component - Sử dụng memo để tránh re-render không cần thiết
+ */
+export const TodoList = memo(function TodoList({
+  todos,
+  onEdit,
+  onDelete,
+  onToggleSelect,
+  onToggleComplete,
+}: TodoListProps) {
   if (todos.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8 bg-white rounded-lg border border-gray-200">
-        No todos
+        Không có todo nào
       </div>
     );
   }
@@ -24,8 +36,10 @@ export function TodoList({ todos, onEdit, onDelete }: TodoListProps) {
           todo={todo}
           onEdit={onEdit}
           onDelete={onDelete}
+          onToggleSelect={onToggleSelect}
+          onToggleComplete={onToggleComplete}
         />
       ))}
     </div>
   );
-}
+});

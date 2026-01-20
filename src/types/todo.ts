@@ -3,4 +3,8 @@ export type TodoLocal = {
   text: string;
   createdAt: number;
   updatedAt?: number;
+  completed?: boolean;
+  selected?: boolean;
 };
+
+export type FilterTab = 'all' | 'active' | 'completed';
