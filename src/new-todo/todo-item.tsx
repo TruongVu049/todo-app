@@ -8,9 +8,15 @@ interface Props {
   todo: Todo
   onUpdate: (id: string, text: string) => void
   onDelete: (id: string) => void
+  onToggleSelected: (id: string) => void
 }
 
-const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete }: Props) {
+const TodoItem = memo(function TodoItem({
+  todo,
+  onUpdate,
+  onDelete,
+  onToggleSelected,
+}: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
   const [error, setError] = useState('')
@@ -39,6 +45,13 @@ const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete }: Props) {
 
   return (
     <li className="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+      <input
+        type="checkbox"
+        checked={todo.selected}
+        onChange={() => onToggleSelected(todo.id)}
+        className="h-5 w-5"
+        aria-label="Select todo"
+      />
       {isEditing ? (
         <>
           <input
@@ -63,7 +76,11 @@ const TodoItem = memo(function TodoItem({ todo, onUpdate, onDelete }: Props) {
         </>
       ) : (
         <>
-          <span className="flex-1">{todo.text}</span>
+          <span
+            className={`flex-1 ${todo.completed ? 'line-through text-gray-400' : ''}`}
+          >
+            {todo.text}
+          </span>
           <button
             onClick={() => setIsEditing(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded"
